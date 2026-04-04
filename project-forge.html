@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forge — waruna@dev</title>
+<meta name="description" content="Forge — Cross-platform AI agent config manager by Waruna D.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --red:#ff6188;--green:#a9dc76;--yellow:#ffd866;--orange:#fc9867;
+  --purple:#ab9df2;--cyan:#78dce8;--white:#fcfcfa;--gray:#727072;
+  --bg:#2d2a2e;--bg-card:#353236;--text:#fcfcfa;--text-dim:#c1c0c0;--text-muted:#727072;
+  --border:#403e41;--selection:#5b595c;
+  --glow:0 0 10px rgba(169,220,118,0.2);--scanline:rgba(120,220,232,0.015);
+}
+[data-theme="light"]{
+  --bg:#f7f1e3;--bg-card:#ffffff;--text:#2d2a2e;--text-dim:#5b595c;--text-muted:#8a888a;
+  --red:#cc4466;--green:#5a8a3a;--yellow:#a08820;--orange:#b06830;
+  --purple:#7a6abf;--cyan:#4a8a9a;--white:#2d2a2e;--gray:#8a888a;
+  --border:#d8d5d0;--selection:#d0ccc8;
+  --glow:none;--scanline:transparent;
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Fira Code',monospace;background:var(--bg);color:var(--text);
+  line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+  font-size:14px;transition:background .3s,color .3s;
+}
+body::before{
+  content:'';position:fixed;inset:0;z-index:9998;pointer-events:none;
+  background:repeating-linear-gradient(0deg,var(--scanline) 0px,var(--scanline) 1px,transparent 1px,transparent 3px);
+}
+a{color:var(--cyan);text-decoration:none;transition:color .2s}
+a:hover{color:var(--orange)}
+::selection{background:var(--selection);color:var(--white)}
+
+.terminal{max-width:900px;margin:0 auto;padding:20px}
+.title-bar{
+  display:flex;align-items:center;gap:8px;padding:10px 16px;
+  background:#221f22;border-radius:8px 8px 0 0;border:1px solid var(--border);border-bottom:none;
+}
+[data-theme="light"] .title-bar{background:#e8e5e0}
+.traffic-light{display:flex;gap:6px}
+.dot{width:12px;height:12px;border-radius:50%}
+.dot-red{background:#ff5f57}.dot-yellow{background:#febc2e}.dot-green{background:#28c840}
+.title-text{flex:1;text-align:center;font-size:12px;color:var(--text-dim)}
+.terminal-body{
+  background:var(--bg);border:1px solid var(--border);border-top:none;
+  border-radius:0 0 8px 8px;padding:32px 24px;
+}
+
+.prompt{color:var(--green);font-weight:700}
+.prompt .arrow{color:var(--green)}
+.prompt .dir{color:var(--cyan);font-weight:400}
+.prompt .git-wrap{color:var(--orange);font-weight:700}
+.prompt .git-branch{color:var(--red);font-weight:400}
+.command{color:var(--text);font-weight:400}
+.cmd-line{margin-bottom:16px;font-size:14px}
+
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted);margin-bottom:24px;transition:color .2s}
+.back-link:hover{color:var(--cyan)}
+
+.project-hero{margin:24px 0 32px}
+.project-title{color:var(--yellow);font-size:24px;font-weight:700;margin-bottom:4px}
+.project-org{color:var(--text-muted);font-size:13px;margin-bottom:16px}
+.project-url{display:inline-block;font-size:13px;color:var(--cyan);padding:6px 14px;border:1px solid var(--cyan);border-radius:2px;transition:all .2s;margin-bottom:24px}
+.project-url:hover{background:rgba(120,220,232,0.1);color:var(--cyan)}
+
+.screenshot{margin:24px 0;border:1px solid var(--border);border-radius:4px;overflow:hidden;transition:border-color .2s}
+.screenshot:hover{border-color:var(--purple)}
+.screenshot img{width:100%;display:block}
+.screenshot-caption{padding:8px 12px;background:var(--bg-card);font-size:11px;color:var(--text-muted);border-top:1px solid var(--border)}
+
+.project-desc{color:var(--text-dim);font-size:13px;line-height:1.8;margin:16px 0}
+
+.detail-section{margin:32px 0;padding-top:24px;border-top:1px solid var(--border)}
+.detail-label{color:var(--orange);font-size:12px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px}
+
+.arch-list{list-style:none;margin:12px 0}
+.arch-list li{padding:6px 0;padding-left:20px;position:relative;color:var(--text-dim);font-size:13px;line-height:1.6}
+.arch-list li::before{content:'▸';position:absolute;left:0;color:var(--green)}
+
+/* Supported agents grid */
+.agents-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:12px 0}
+.agent-item{
+  padding:10px 12px;border:1px solid var(--border);border-radius:2px;
+  font-size:12px;color:var(--text-dim);text-align:center;transition:all .2s;
+}
+.agent-item:hover{border-color:var(--green);color:var(--green)}
+
+.tech-grid{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.tech-tag{font-size:11px;padding:3px 10px;border:1px solid var(--border);border-radius:2px;transition:all .2s}
+.tech-tag:nth-child(5n+1){color:var(--cyan);border-color:rgba(120,220,232,0.25)}
+.tech-tag:nth-child(5n+2){color:var(--purple);border-color:rgba(171,157,242,0.25)}
+.tech-tag:nth-child(5n+3){color:var(--red);border-color:rgba(255,97,136,0.25)}
+.tech-tag:nth-child(5n+4){color:var(--green);border-color:rgba(169,220,118,0.25)}
+.tech-tag:nth-child(5n){color:var(--orange);border-color:rgba(252,152,103,0.25)}
+
+.status-bar{position:fixed;bottom:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:4px 16px;background:#221f22;border-top:1px solid var(--border);font-size:11px}
+[data-theme="light"] .status-bar{background:#e8e5e0}
+.status-left{display:flex;gap:16px;align-items:center}
+.status-right{display:flex;gap:16px;align-items:center}
+.mode-badge{background:var(--green);color:var(--bg);padding:1px 8px;font-weight:600;font-size:10px}
+.status-item{color:var(--text-dim)}
+.theme-btn{background:none;border:1px solid var(--border);color:var(--text-dim);font-family:inherit;font-size:11px;padding:2px 10px;cursor:pointer;transition:all .2s}
+.theme-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+
+.footer-section{margin-top:32px;padding-top:24px;border-top:1px solid var(--border);margin-bottom:60px}
+.footer-nav{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px}
+.footer-nav a{font-size:12px;color:var(--text-muted)}
+
+@media(max-width:640px){.terminal{padding:8px}.terminal-body{padding:16px 12px}.agents-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="terminal">
+  <div class="title-bar">
+    <div class="traffic-light"><div class="dot dot-red"></div><div class="dot dot-yellow"></div><div class="dot dot-green"></div></div>
+    <div class="title-text">waruna@dev: ~/projects/Forge</div>
+    <div style="width:48px"></div>
+  </div>
+  <div class="terminal-body">
+
+    <a href="waruna-dev-portfolio-1.html" class="back-link">← cd ..</a>
+
+    <div class="cmd-line">
+      <span class="prompt"><span class="arrow">➜</span>  <span class="dir">Forge</span> <span class="git-wrap">git:(<span class="git-branch">main</span>)</span></span>
+      <span class="command"> cat README.md</span>
+    </div>
+
+    <div class="project-hero">
+      <div class="project-title">Forge</div>
+      <div class="project-org">Open Source · Cross-Platform Desktop App</div>
+      <a href="https://github.com/warunacds" class="project-url" target="_blank">GitHub →</a>
+    </div>
+
+    <p class="project-desc">Cross-platform desktop app for managing AI agent instruction files across all major coding agents. Browse, edit, and sync configs. Peer-to-peer sync across machines with no account required.</p>
+
+    <div class="screenshot">
+      <img src="images/forge-github.png" alt="Waruna's GitHub profile showing open source projects including Forge" loading="lazy">
+      <div class="screenshot-caption">// GitHub profile — open source work</div>
+    </div>
+
+    <div class="detail-section">
+      <div class="cmd-line">
+        <span class="prompt"><span class="arrow">➜</span>  <span class="dir">Forge</span> <span class="git-wrap">git:(<span class="git-branch">main</span>)</span></span>
+        <span class="command"> cat SUPPORTED_AGENTS.md</span>
+      </div>
+      <div class="detail-label"># Supported Agents</div>
+      <div class="agents-grid">
+        <div class="agent-item">Claude Code</div>
+        <div class="agent-item">Gemini CLI</div>
+        <div class="agent-item">Cursor</div>
+        <div class="agent-item">Kiro</div>
+        <div class="agent-item">Windsurf</div>
+        <div class="agent-item">Copilot</div>
+        <div class="agent-item">Aider</div>
+        <div class="agent-item">Amp</div>
+        <div class="agent-item">Codex</div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="cmd-line">
+        <span class="prompt"><span class="arrow">➜</span>  <span class="dir">Forge</span> <span class="git-wrap">git:(<span class="git-branch">main</span>)</span></span>
+        <span class="command"> cat FEATURES.md</span>
+      </div>
+      <div class="detail-label"># Key Features</div>
+      <ul class="arch-list">
+        <li>Browse and edit instruction files for all major AI coding agents from one interface</li>
+        <li>Peer-to-peer sync across machines — no cloud account, no sign-up required</li>
+        <li>Cross-platform: macOS, Windows, and Linux via Wails (Go + React)</li>
+        <li>Detects and manages CLAUDE.md, GEMINI.md, .cursorrules, and other config formats</li>
+        <li>Built with Go backend for performance and React frontend for a modern UI</li>
+        <li>Automated releases via GitHub Actions</li>
+      </ul>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-label"># Tech Stack</div>
+      <div class="tech-grid">
+        <span class="tech-tag">Go</span>
+        <span class="tech-tag">Wails</span>
+        <span class="tech-tag">React</span>
+        <span class="tech-tag">P2P Sync</span>
+        <span class="tech-tag">GitHub Actions</span>
+        <span class="tech-tag">macOS</span>
+        <span class="tech-tag">Windows</span>
+        <span class="tech-tag">Linux</span>
+      </div>
+    </div>
+
+    <div class="footer-section">
+      <div class="cmd-line">
+        <span class="prompt"><span class="arrow">➜</span>  <span class="dir">Forge</span> <span class="git-wrap">git:(<span class="git-branch">main</span>)</span></span>
+        <span class="command"> ls ../</span>
+      </div>
+      <div class="footer-nav">
+        <a href="waruna-dev-portfolio-1.html">← Back to portfolio</a>
+        <a href="project-domainpilot.html">← DomainPilot</a>
+        <a href="project-racetelemetry.html">Race Telemetry →</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="status-bar">
+  <div class="status-left">
+    <span class="mode-badge">NORMAL</span>
+    <span class="status-item">Forge/README.md</span>
+    <span class="status-item">utf-8</span>
+  </div>
+  <div class="status-right">
+    <button class="theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">theme: <span id="theme-label">dark</span></button>
+  </div>
+</div>
+
+<script>
+function toggleTheme(){var h=document.documentElement;var next=h.getAttribute('data-theme')==='dark'?'light':'dark';h.setAttribute('data-theme',next);localStorage.setItem('theme',next);document.getElementById('theme-label').textContent=next;}
+(function(){var s=localStorage.getItem('theme');if(s){document.documentElement.setAttribute('data-theme',s);document.getElementById('theme-label').textContent=s;}else if(window.matchMedia('(prefers-color-scheme:light)').matches){document.documentElement.setAttribute('data-theme','light');document.getElementById('theme-label').textContent='light';}})();
+</script>
+</body>
+</html>
