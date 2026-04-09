@@ -1,456 +1,675 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>waruna@dev — Product Engineer</title>
-<meta name="description" content="Product engineer with 12+ years of experience. Terminal-style portfolio.">
+<title>Waruna D. — Product Engineer</title>
+<meta name="description" content="Product engineer with 12+ years of experience building end-to-end products.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Newsreader:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+<script>
+(function(){
+  try {
+    if (localStorage.getItem('theme-dejan') === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  } catch (e) {}
+})();
+</script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --red:#ff6188;--green:#a9dc76;--yellow:#ffd866;--orange:#fc9867;
-  --purple:#ab9df2;--cyan:#78dce8;--white:#fcfcfa;--gray:#727072;
-  --bg:#2d2a2e;--bg-card:#353236;--text:#fcfcfa;--text-dim:#c1c0c0;--text-muted:#727072;
-  --border:#403e41;--selection:#5b595c;
-  --glow:0 0 10px rgba(169,220,118,0.2);--scanline:rgba(120,220,232,0.015);
-  --green-dim:#8ab85e;--amber:#ffd866;--magenta:#ff6188;--pink:#ff6188;
+  --bg:#fdfdfc;
+  --bg-alt:#f4f3ef;
+  --text:#1a1a1a;
+  --text-secondary:#5a5a5a;
+  --text-tertiary:#8a8a8a;
+  --accent:#1a1a1a;
+  --border:#e8e6e0;
+  --radius:12px;
+  --sans:'Instrument Sans',system-ui,sans-serif;
+  --serif:'Newsreader',Georgia,serif;
 }
-[data-theme="light"]{
-  --bg:#f7f1e3;--bg-card:#ffffff;--text:#2d2a2e;--text-dim:#5b595c;--text-muted:#8a888a;
-  --red:#cc4466;--green:#5a8a3a;--yellow:#a08820;--orange:#b06830;
-  --purple:#7a6abf;--cyan:#4a8a9a;--white:#2d2a2e;--gray:#8a888a;
-  --border:#d8d5d0;--selection:#d0ccc8;
-  --glow:none;--scanline:transparent;
-  --green-dim:#5a8a3a;--amber:#a08820;--magenta:#cc4466;--pink:#cc4466;
+:root[data-theme="dark"]{
+  --bg:#141413;
+  --bg-alt:#1c1c1a;
+  --text:#f0eeea;
+  --text-secondary:#a8a6a0;
+  --text-tertiary:#6e6c66;
+  --accent:#f0eeea;
+  --border:#2a2a27;
 }
 html{scroll-behavior:smooth}
 body{
-  font-family:'Fira Code',monospace;background:var(--bg);color:var(--text);
-  line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden;
-  font-size:14px;transition:background .3s,color .3s;
+  font-family:var(--sans);background:var(--bg);color:var(--text);
+  line-height:1.6;-webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  transition:background-color .2s ease,color .2s ease;
 }
-/* CRT Scanlines */
-body::before{
-  content:'';position:fixed;inset:0;z-index:9998;pointer-events:none;
-  background:repeating-linear-gradient(0deg,var(--scanline) 0px,var(--scanline) 1px,transparent 1px,transparent 3px);
-}
-/* CRT Vignette */
+a{color:inherit;text-decoration:none}
+::selection{background:var(--text);color:var(--bg)}
+img{display:block;max-width:100%}
+
+/* Grain overlay */
 body::after{
-  content:'';position:fixed;inset:0;z-index:9997;pointer-events:none;
-  background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,0.4) 100%);
-}
-[data-theme="light"] body::before,[data-theme="light"] body::after{opacity:0}
-a{color:var(--cyan);text-decoration:none;transition:color .2s}
-a:hover{color:var(--orange)}
-::selection{background:var(--selection);color:var(--white)}
-
-/* Terminal Window */
-.terminal{max-width:900px;margin:0 auto;padding:20px}
-.title-bar{
-  display:flex;align-items:center;gap:8px;padding:10px 16px;
-  background:#221f22;border-radius:8px 8px 0 0;border:1px solid var(--border);
-  border-bottom:none;
-}
-[data-theme="light"] .title-bar{background:#e8e5e0}
-.traffic-light{display:flex;gap:6px}
-.dot{width:12px;height:12px;border-radius:50%}
-.dot-red{background:#ff5f57}.dot-yellow{background:#febc2e}.dot-green{background:#28c840}
-.title-text{flex:1;text-align:center;font-size:12px;color:var(--text-dim)}
-.terminal-body{
-  background:var(--bg);border:1px solid var(--border);border-top:none;
-  border-radius:0 0 8px 8px;padding:32px 24px;min-height:100vh;
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity:.4;
 }
 
-/* Prompt */
-.prompt{color:var(--green);font-weight:700}
-.prompt .arrow{color:var(--green)}
-.prompt .dir{color:var(--cyan);font-weight:400}
-.prompt .git-branch{color:var(--red);font-weight:400}
-.prompt .git-wrap{color:var(--orange);font-weight:700}
-.command{color:var(--text);font-weight:400}
-.cursor{
-  display:inline-block;width:8px;height:16px;background:#c1c0c0;
-  animation:blink 1s step-end infinite;vertical-align:text-bottom;margin-left:2px;
-}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+/* Container */
+.container{max-width:800px;margin:0 auto;padding:0 24px}
+.container-wide{max-width:1100px;margin:0 auto;padding:0 24px}
 
-/* Sections */
-.section{margin:48px 0;opacity:0;transform:translateY(15px);transition:all .6s ease}
-.section.visible{opacity:1;transform:translateY(0)}
-.cmd-line{margin-bottom:16px;font-size:14px}
-.output{padding-left:0;margin-top:8px;color:var(--text-dim)}
-.output-bright{color:var(--green);text-shadow:var(--glow)}
+/* Header — floating pill, iOS liquid glass */
+header{
+  position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:100;
+  padding:10px 8px 10px 12px;
+  background:rgba(255,255,255,.55);
+  backdrop-filter:blur(40px) saturate(1.8);
+  -webkit-backdrop-filter:blur(40px) saturate(1.8);
+  border-radius:100px;
+  border:1px solid rgba(255,255,255,.6);
+  box-shadow:
+    0 1px 3px rgba(0,0,0,.04),
+    0 8px 24px rgba(0,0,0,.06),
+    inset 0 1px 0 rgba(255,255,255,.8);
+  transition:box-shadow .3s,background .3s;
+  max-width:calc(100% - 32px);
+}
+header:hover{
+  box-shadow:
+    0 1px 3px rgba(0,0,0,.06),
+    0 12px 32px rgba(0,0,0,.08),
+    inset 0 1px 0 rgba(255,255,255,.9);
+  background:rgba(255,255,255,.65);
+}
+header .container{display:flex;align-items:center;gap:32px;padding:0}
+.logo{
+  display:flex;align-items:center;gap:10px;
+  font-weight:600;font-size:15px;letter-spacing:-.02em;white-space:nowrap;
+  padding-left:4px;
+}
+.logo-avatar{
+  width:32px;height:32px;border-radius:50%;object-fit:cover;
+  border:1px solid rgba(0,0,0,.06);
+}
+.nav-links{display:flex;gap:4px;align-items:center}
+.nav-links a{
+  font-size:14px;color:var(--text-secondary);transition:all .2s;
+  position:relative;padding:6px 14px;border-radius:100px;
+}
+.nav-links a:hover{color:var(--text);background:rgba(0,0,0,.05)}
+.nav-links a::after{display:none}
+.theme-toggle{
+  width:32px;height:32px;border-radius:50%;border:none;background:none;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  color:var(--text-secondary);transition:all .2s;padding:0;margin-left:4px;
+}
+.theme-toggle:hover{color:var(--text);background:rgba(0,0,0,.05)}
+:root[data-theme="dark"] .theme-toggle:hover{background:rgba(255,255,255,.05)}
+.theme-toggle svg{display:block}
+.theme-toggle .theme-icon-moon{display:none}
+:root[data-theme="dark"] .theme-toggle .theme-icon-sun{display:none}
+:root[data-theme="dark"] .theme-toggle .theme-icon-moon{display:block}
 
-/* ASCII Art */
-.ascii-art{
-  color:var(--green);font-size:clamp(8px,1.8vw,16px);line-height:1.15;white-space:pre;
-  text-shadow:var(--glow);margin:16px 0;letter-spacing:.05em;
+/* Hero */
+.hero{padding:100px 0 60px}
+.hero h1{
+  font-family:var(--serif);font-size:clamp(36px,5.5vw,56px);
+  font-weight:400;line-height:1.25;letter-spacing:-.03em;
+  max-width:680px;
+}
+.hero h1 em{font-style:italic;font-weight:300}
+.hero-sub{
+  margin-top:20px;font-size:17px;color:var(--text-secondary);
+  max-width:500px;line-height:1.7;
+}
+.hero-links{display:flex;gap:12px;margin-top:28px}
+.hero-link{
+  font-size:13px;font-weight:500;color:var(--text-secondary);
+  padding:8px 18px;border:1px solid var(--border);border-radius:100px;
+  transition:all .25s ease;
+}
+.hero-link:hover{background:var(--text);color:var(--bg);border-color:var(--text)}
+
+/* Divider */
+.divider{height:1px;background:var(--border);margin:0}
+
+/* What I do section */
+.what-section{padding:60px 0}
+.what-label{
+  font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;
+  color:var(--text-tertiary);margin-bottom:24px;
+}
+.what-list{list-style:none;display:flex;flex-direction:column;gap:0}
+.what-list li{
+  font-family:var(--serif);font-size:clamp(20px,3vw,28px);font-weight:400;
+  line-height:1.4;padding:16px 0;border-bottom:1px solid var(--border);
+  color:var(--text);transition:color .2s;letter-spacing:-.01em;
+}
+.what-list li:first-child{border-top:1px solid var(--border)}
+.what-list li:hover{color:var(--text-secondary)}
+.what-list li span{color:var(--text-tertiary);font-family:var(--sans);font-size:13px;font-weight:500;margin-right:12px}
+
+/* Projects */
+.projects-section{padding:40px 0 80px}
+.projects-label{
+  font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;
+  color:var(--text-tertiary);margin-bottom:40px;
 }
 
-/* Project listing */
-.file-listing{margin:12px 0}
-.file-row{
-  display:grid;grid-template-columns:100px 80px 1fr;gap:8px;
-  padding:4px 0;border-bottom:1px solid var(--border);font-size:13px;
+.project{margin-bottom:80px}
+.project:last-child{margin-bottom:0}
+.project-info{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.project-title{font-family:var(--serif);font-size:clamp(24px,3.5vw,32px);font-weight:400;letter-spacing:-.02em}
+.project-meta{text-align:right}
+.project-role{font-size:13px;color:var(--text-tertiary);margin-bottom:2px}
+.project-tags{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+.project-tag{
+  font-size:11px;font-weight:500;color:var(--text-tertiary);
+  padding:3px 10px;background:var(--bg-alt);border-radius:100px;
 }
-@media(max-width:640px){.file-row{grid-template-columns:1fr;gap:2px}}
-.file-perms{color:var(--green-dim)}
-.file-size{color:var(--amber)}
-.file-name{color:var(--cyan)}
-.file-name a{color:var(--cyan)}
+.project-desc{font-size:15px;color:var(--text-secondary);max-width:560px;line-height:1.7;margin-bottom:20px}
+.project-link{
+  display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;
+  color:var(--text-secondary);transition:color .2s;margin-bottom:24px;
+}
+.project-link:hover{color:var(--text)}
+.project-link::after{content:'→';transition:transform .2s}
+.project-link:hover::after{transform:translateX(3px)}
 
-/* Project detail */
-.project-block{
-  margin:24px 0;padding:16px;border-left:2px solid var(--purple);
-  background:var(--bg-card);
+/* Carousel */
+.carousel{position:relative;overflow:hidden;border-radius:var(--radius);background:var(--bg-alt)}
+.carousel-track{
+  display:flex;transition:transform .5s cubic-bezier(.25,.1,.25,1);
+  will-change:transform;
 }
-.project-block:nth-child(4n+2){border-left-color:var(--red)}
-.project-block:nth-child(4n+4){border-left-color:var(--cyan)}
-.project-block:nth-child(4n+6){border-left-color:var(--green)}
-.project-name{color:var(--yellow);font-size:16px;font-weight:600;margin-bottom:4px}
-.project-org{color:var(--text-muted);font-size:12px}
-.project-desc{color:var(--text-dim);margin:8px 0;font-size:13px;line-height:1.7}
-.project-stats{display:flex;gap:20px;margin:8px 0}
-.stat-val{color:var(--green);font-weight:600;text-shadow:0 0 8px rgba(169,220,118,0.2)}
-.stat-lbl{color:var(--text-muted)}
-.tech-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.tech-item{
-  font-size:11px;padding:2px 8px;border:1px solid var(--border);
-  color:var(--text-dim);border-radius:2px;transition:all .2s;
+.carousel-slide{min-width:100%;position:relative}
+.carousel-slide img{
+  width:100%;aspect-ratio:16/10;object-fit:cover;display:block;
+  border-radius:var(--radius);
 }
-.tech-item:hover{border-color:var(--cyan);color:var(--cyan)}
-.tech-item:nth-child(6n+1){color:var(--cyan);border-color:rgba(120,220,232,0.25)}
-.tech-item:nth-child(6n+2){color:var(--purple);border-color:rgba(171,157,242,0.25)}
-.tech-item:nth-child(6n+3){color:var(--red);border-color:rgba(255,97,136,0.25)}
-.tech-item:nth-child(6n+4){color:var(--green);border-color:rgba(169,220,118,0.25)}
-.tech-item:nth-child(6n+5){color:var(--orange);border-color:rgba(252,152,103,0.25)}
-.tech-item:nth-child(6n){color:var(--yellow);border-color:rgba(255,216,102,0.25)}
+.carousel-nav{
+  position:absolute;bottom:16px;left:50%;transform:translateX(-50%);
+  display:flex;gap:6px;z-index:10;
+}
+.carousel-dot{
+  width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.4);
+  border:none;cursor:pointer;transition:all .3s;padding:0;
+}
+.carousel-dot.active{background:rgba(255,255,255,.9);transform:scale(1.2)}
+.carousel-arrows{
+  position:absolute;inset:0;display:flex;justify-content:space-between;
+  align-items:center;padding:0 12px;pointer-events:none;z-index:10;
+}
+.carousel-arrow{
+  width:36px;height:36px;border-radius:50%;
+  background:rgba(255,255,255,.8);backdrop-filter:blur(8px);
+  border:none;cursor:pointer;pointer-events:auto;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;color:var(--text);transition:all .2s;
+  opacity:0;
+}
+.carousel:hover .carousel-arrow{opacity:1}
+.carousel-arrow:hover{background:rgba(255,255,255,.95);transform:scale(1.05)}
 
-/* Detail link */
-.detail-link{
-  display:inline-block;font-size:12px;color:var(--cyan);
-  margin-top:10px;padding:4px 0;border-bottom:1px dashed var(--cyan);
-  transition:all .2s;
-}
-.detail-link:hover{color:var(--orange);border-color:var(--orange)}
+/* Stats row */
+.project-stats{display:flex;gap:32px;margin-bottom:20px}
+.project-stat-value{font-family:var(--serif);font-size:28px;font-weight:400;letter-spacing:-.02em}
+.project-stat-label{font-size:12px;color:var(--text-tertiary)}
 
 /* Experience */
-.exp-entry{margin:16px 0;padding-left:16px;border-left:2px solid var(--border)}
-.exp-entry:nth-child(1){border-left-color:var(--green)}
-.exp-entry:nth-child(2){border-left-color:var(--orange)}
-.exp-entry:nth-child(3){border-left-color:var(--purple)}
-.exp-period{color:var(--amber);font-size:12px}
-.exp-role{color:var(--text);font-weight:600;font-size:14px}
-.exp-company{color:var(--orange);font-size:13px}
-.exp-desc{color:var(--text-dim);font-size:13px;margin-top:4px}
-
-/* Skills */
-.skills-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:12px}
-.skill-cat{margin-bottom:8px}
-.skill-cat-name{font-size:12px;text-transform:uppercase;margin-bottom:4px}
-.skill-cat:nth-child(1) .skill-cat-name{color:var(--red)}
-.skill-cat:nth-child(2) .skill-cat-name{color:var(--green)}
-.skill-cat:nth-child(3) .skill-cat-name{color:var(--cyan)}
-.skill-cat:nth-child(4) .skill-cat-name{color:var(--orange)}
-.skill-cat:nth-child(5) .skill-cat-name{color:var(--purple)}
-.skill-cat:nth-child(6) .skill-cat-name{color:var(--yellow)}
-.skill-cat-items{color:var(--text-dim);font-size:13px;line-height:1.8}
-
-/* Small projects grid */
-.small-projects{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:12px}
-.small-project{padding:12px;border:1px solid var(--border);transition:border-color .2s}
-.small-project:hover{border-color:var(--orange)}
-.small-project-name{font-size:13px;font-weight:600}
-.small-project:nth-child(1) .small-project-name{color:var(--cyan)}
-.small-project:nth-child(2) .small-project-name{color:var(--red)}
-.small-project:nth-child(3) .small-project-name{color:var(--green)}
-.small-project:nth-child(4) .small-project-name{color:var(--purple)}
-.small-project-desc{color:var(--text-muted);font-size:12px;margin:4px 0}
-
-/* Status bar */
-.status-bar{
-  position:fixed;bottom:0;left:0;right:0;z-index:100;
-  display:flex;justify-content:space-between;align-items:center;
-  padding:4px 16px;background:#221f22;border-top:1px solid var(--border);
-  font-size:11px;
+.exp-section{padding:60px 0;background:var(--bg-alt)}
+.exp-label{
+  font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;
+  color:var(--text-tertiary);margin-bottom:32px;
 }
-[data-theme="light"] .status-bar{background:#e8e5e0}
-.status-left{display:flex;gap:16px;align-items:center}
-.status-right{display:flex;gap:16px;align-items:center}
-.mode-badge{background:var(--green);color:var(--bg);padding:1px 8px;font-weight:600;font-size:10px}
-.status-item{color:var(--text-dim)}
-.theme-btn{
-  background:none;border:1px solid var(--border);color:var(--text-dim);
-  font-family:inherit;font-size:11px;padding:2px 10px;cursor:pointer;
-  transition:all .2s;
+.exp-list{display:flex;flex-direction:column;gap:0}
+.exp-item{
+  display:grid;grid-template-columns:1fr 2fr;gap:24px;
+  padding:24px 0;border-bottom:1px solid var(--border);
 }
-.theme-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.exp-item:first-child{border-top:1px solid var(--border)}
+.exp-period{font-size:13px;color:var(--text-tertiary);padding-top:2px}
+.exp-details h3{font-size:17px;font-weight:600;margin-bottom:2px}
+.exp-details .exp-company{font-size:14px;color:var(--text-secondary);font-family:var(--serif);font-style:italic}
+.exp-details .exp-desc{font-size:14px;color:var(--text-tertiary);margin-top:6px;line-height:1.6}
 
-/* Footer */
-.footer-section{
-  margin-top:48px;padding-top:24px;border-top:1px solid var(--border);
-  margin-bottom:60px;
+/* CTA / Footer */
+.cta-section{padding:100px 0;text-align:center}
+.cta-section h2{
+  font-family:var(--serif);font-size:clamp(32px,5vw,48px);
+  font-weight:400;letter-spacing:-.03em;margin-bottom:16px;
 }
-.footer-cta{color:var(--yellow);font-size:16px;margin:8px 0}
-.footer-links{display:flex;gap:16px;margin:8px 0;flex-wrap:wrap}
-.footer-copy{color:var(--text-muted);font-size:11px;margin-top:16px}
-
-/* Nav */
-.nav-hint{
-  position:fixed;top:12px;right:12px;z-index:100;font-size:11px;
-  color:var(--text-muted);
+.cta-section p{font-size:16px;color:var(--text-secondary);margin-bottom:28px}
+.cta-email{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:15px;font-weight:500;color:var(--text);
+  padding:12px 28px;border:1px solid var(--border);border-radius:100px;
+  transition:all .25s ease;cursor:pointer;background:none;
+  font-family:var(--sans);
 }
-.nav-hint a{color:var(--text-dim);margin:0 6px}
-
-@media(max-width:640px){
-  .terminal{padding:8px}
-  .terminal-body{padding:16px 12px}
-  .project-stats{flex-direction:column;gap:4px}
-  .nav-hint{display:none}
+.cta-email:hover{background:var(--text);color:var(--bg);border-color:var(--text)}
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--text);color:var(--bg);font-size:13px;font-weight:500;
+  padding:10px 20px;border-radius:100px;opacity:0;transition:all .3s ease;
+  pointer-events:none;z-index:1000;
 }
+.toast.visible{opacity:1;transform:translateX(-50%) translateY(0)}
 
-@media(prefers-reduced-motion:reduce){
-  .section{opacity:1;transform:none;transition:none}
-  .cursor{animation:none;opacity:1}
+footer{padding:24px 0;border-top:1px solid var(--border)}
+footer .container{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.footer-copy{font-size:12px;color:var(--text-tertiary)}
+.footer-links{display:flex;gap:20px}
+.footer-links a{font-size:13px;color:var(--text-tertiary);transition:color .2s}
+.footer-links a:hover{color:var(--text)}
+
+/* Animations */
+.reveal{opacity:0;transform:translateY(24px);transition:all .7s cubic-bezier(.25,.1,.25,1)}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* Hero staggered entrance */
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideDown{from{opacity:0;transform:translateX(-50%) translateY(-12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+header{animation:slideDown .6s cubic-bezier(.25,.1,.25,1) .1s both}
+.hero h1{animation:fadeUp .7s cubic-bezier(.25,.1,.25,1) .2s both}
+.hero-sub{animation:fadeUp .7s cubic-bezier(.25,.1,.25,1) .35s both}
+.hero-links{animation:fadeUp .7s cubic-bezier(.25,.1,.25,1) .5s both}
+
+/* Subtle hover lift on project cards */
+.project{transition:transform .3s ease}
+.project:hover{transform:translateY(-2px)}
+
+/* Carousel image zoom on hover */
+.carousel-slide img{transition:transform .6s cubic-bezier(.25,.1,.25,1)}
+.carousel:hover .carousel-slide img{transform:scale(1.015)}
+
+/* What-list items stagger on reveal */
+.what-list li{
+  opacity:0;transform:translateX(-12px);
+  transition:all .5s cubic-bezier(.25,.1,.25,1);
+}
+.what-list li.visible{opacity:1;transform:translateX(0)}
+
+/* Logo avatar pulse on hover */
+.logo-avatar{transition:transform .3s ease}
+.logo:hover .logo-avatar{transform:scale(1.08)}
+
+/* Small project cards hover */
+.other-card{transition:all .25s ease}
+.other-card:hover{border-color:var(--text-tertiary);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.04)}
+
+/* Dark mode overrides for hardcoded colors */
+:root[data-theme="dark"] header{
+  background:rgba(20,20,19,.55);
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:
+    0 1px 3px rgba(0,0,0,.3),
+    0 8px 24px rgba(0,0,0,.4),
+    inset 0 1px 0 rgba(255,255,255,.05);
+}
+:root[data-theme="dark"] header:hover{
+  background:rgba(20,20,19,.65);
+  box-shadow:
+    0 1px 3px rgba(0,0,0,.4),
+    0 12px 32px rgba(0,0,0,.5),
+    inset 0 1px 0 rgba(255,255,255,.08);
+}
+:root[data-theme="dark"] .nav-links a:hover{background:rgba(255,255,255,.05)}
+:root[data-theme="dark"] .other-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.4)}
+:root[data-theme="dark"] .logo-avatar{border:1px solid rgba(255,255,255,.08)}
+
+@media(max-width:768px){
+  .hero{padding:48px 0 40px}
+  .exp-item{grid-template-columns:1fr;gap:4px}
+  .project-info{flex-direction:column}
+  .project-meta{text-align:left}
+  .project-tags{justify-content:flex-start}
+  .carousel-arrow{opacity:1;width:32px;height:32px}
+  header{padding:8px 4px 8px 8px}
+  header .container{gap:12px}
+  .nav-links{gap:2px}
+  .nav-links a{padding:6px 8px;font-size:13px}
+  .logo{font-size:14px;padding-left:6px}
+  .logo-avatar{display:none}
+  .theme-toggle{margin-left:0}
+  .cta-section{padding:60px 0}
 }
 </style>
 </head>
 <body>
-<div class="nav-hint">
-  <a href="#projects">projects</a>
-  <a href="#experience">exp</a>
-  <a href="#skills">skills</a>
-  <a href="#contact">contact</a>
-</div>
 
-<div class="terminal">
-  <div class="title-bar">
-    <div class="traffic-light"><div class="dot dot-red"></div><div class="dot dot-yellow"></div><div class="dot dot-green"></div></div>
-    <div class="title-text">waruna@dev: ~</div>
-    <div style="width:48px"></div>
+<header>
+  <div class="container">
+    <a href="#" class="logo"><img src="images/avatar.jpg" alt="Waruna D." class="logo-avatar">Waruna D.</a>
+    <nav class="nav-links">
+      <a href="#projects">Projects</a>
+      <a href="#experience">Experience</a>
+      <a href="#contact">Contact</a>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
+        <svg class="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        <svg class="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </nav>
   </div>
-  <div class="terminal-body">
+</header>
 
-    <!-- Welcome / whoami -->
-    <div class="section" id="about">
-      <div class="cmd-line">
-        <span class="prompt"><span class="arrow">➜</span>  <span class="dir">~</span> <span class="git-wrap">git:(<span class="git-branch">main</span>)</span></span>
-        <span class="command"> cat welcome.txt</span>
-      </div>
-      <div class="ascii-art">
-██╗    ██╗ █████╗ ██████╗ ██╗   ██╗███╗   ██╗ █████╗
-██║    ██║██╔══██╗██╔══██╗██║   ██║████╗  ██║██╔══██╗
-██║ █╗ ██║███████║██████╔╝██║   ██║██╔██╗ ██║███████║
-██║███╗██║██╔══██║██╔══██╗██║   ██║██║╚██╗██║██╔══██║
-╚███╔███╔╝██║  ██║██║  ██║╚██████╔╝██║ ╚████║██║  ██║
- ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝
-      </div>
-      <div class="output">
-        <p class="output-bright">Product Engineer — 12+ years shipping software</p>
-        <br>
-        <p>I build entire products, not just features. 12+ years shipping</p>
-        <p>software across Rails, Go, React, Swift, and TypeScript.</p>
-        <p>I design architectures, make product decisions, and ship</p>
-        <p>end-to-end — from database to App Store.</p>
-      </div>
+<section class="hero">
+  <div class="container">
+    <h1>Product engineer building <em>and shipping</em> digital products</h1>
+    <p class="hero-sub">12+ years of turning ideas into real, running software. I partner closely with teams to architect, build, and scale — from database to App Store.</p>
+    <div class="hero-links">
+      <a href="https://github.com/warunacds" class="hero-link" target="_blank">GitHub</a>
+      <a href="https://linkedin.com/in/warunacds" class="hero-link" target="_blank">LinkedIn</a>
+      <a href="mailto:hello@waruna.dev" class="hero-link">Email</a>
     </div>
+  </div>
+</section>
 
-    <!-- Projects -->
-    <div class="section" id="projects">
-      <div class="cmd-line">
-        <span class="prompt"><span class="arrow">➜</span>  <span class="dir">~</span> <span class="git-wrap">git:(<span class="git-branch">main</span>)</span></span>
-        <span class="command"> cat projects/DomainPilot/README.md</span>
-      </div>
-      <div class="project-block">
-        <div class="project-name"><a href="project-domainpilot.html" style="color:inherit">DomainPilot</a></div>
-        <div class="project-org">Frontcube LLC — <a href="https://app.domainpilot.io" target="_blank">app.domainpilot.io</a></div>
-        <div class="project-desc">Domain monitoring SaaS I designed, built, and operate solo. Rails 8 API + Next.js frontend + Go uptime service across 6 global regions. Redis config broadcast system, TimescaleDB time-series storage, real-time WebSockets, Stripe billing, and AI-powered analysis. Two-layer notification anti-spam with multi-region consensus and flap detection.</div>
+<hr class="divider container">
+
+<section class="what-section">
+  <div class="container">
+    <div class="what-label">What I help teams do</div>
+    <ul class="what-list">
+      <li><span>01</span> Design system architecture from scratch and scale it</li>
+      <li><span>02</span> Build full-stack products across web, mobile, and desktop</li>
+      <li><span>03</span> Ship to production — App Store, cloud infra, the whole pipeline</li>
+      <li><span>04</span> Make product decisions that balance speed with long-term quality</li>
+      <li><span>05</span> Mentor engineers and establish development workflows</li>
+    </ul>
+  </div>
+</section>
+
+<section class="projects-section" id="projects">
+  <div class="container-wide">
+    <div class="projects-label" style="padding:0 24px">Selected Projects</div>
+
+    <!-- DomainPilot -->
+    <div class="project reveal">
+      <div style="padding:0 24px">
+        <div class="project-info">
+          <div class="project-title">DomainPilot</div>
+          <div class="project-meta">
+            <div class="project-role">Frontcube LLC · Solo</div>
+            <div class="project-tags">
+              <span class="project-tag">Rails 8</span>
+              <span class="project-tag">Next.js</span>
+              <span class="project-tag">Go</span>
+              <span class="project-tag">TimescaleDB</span>
+            </div>
+          </div>
+        </div>
         <div class="project-stats">
-          <span><span class="stat-val">6</span> <span class="stat-lbl">global regions</span></span>
-          <span><span class="stat-val">3</span> <span class="stat-lbl">services</span></span>
-          <span><span class="stat-val">1</span> <span class="stat-lbl">engineer</span></span>
+          <div><div class="project-stat-value">6</div><div class="project-stat-label">Global regions</div></div>
+          <div><div class="project-stat-value">3</div><div class="project-stat-label">Services</div></div>
+          <div><div class="project-stat-value">1</div><div class="project-stat-label">Engineer</div></div>
         </div>
-        <div class="tech-list">
-          <span class="tech-item">Rails 8</span><span class="tech-item">Next.js 16</span><span class="tech-item">Go</span>
-          <span class="tech-item">PostgreSQL</span><span class="tech-item">TimescaleDB</span><span class="tech-item">Redis</span>
-          <span class="tech-item">Fly.io</span><span class="tech-item">Stripe</span><span class="tech-item">Claude API</span>
-        </div>
-        <a href="project-domainpilot.html" class="detail-link">view details →</a>
+        <p class="project-desc">Domain monitoring SaaS I designed, built, and operate solo. Bring your domains together from GoDaddy, Namecheap, Cloudflare, and 12+ registrars. Monitor uptime, SSL, DNS — all from one dashboard.</p>
+        <a href="https://domainpilot.io" class="project-link" target="_blank">Visit domainpilot.io</a>
       </div>
-
-      <div class="cmd-line">
-        <span class="prompt"><span class="arrow">➜</span>  <span class="dir">~</span> <span class="git-wrap">git:(<span class="git-branch">main</span>)</span></span>
-        <span class="command"> cat projects/Forge/README.md</span>
-      </div>
-      <div class="project-block">
-        <div class="project-name"><a href="project-forge.html" style="color:inherit">Forge</a></div>
-        <div class="project-org">Open Source — <a href="https://github.com/warunacds/Forge" target="_blank">GitHub</a></div>
-        <div class="project-desc">Cross-platform desktop app for managing AI agent instruction files across Claude Code, Gemini, Cursor, Kiro, Windsurf, Copilot, Aider, Amp, and Codex. Browse, edit, and sync configs across all major coding agents. Peer-to-peer sync across machines with no account required.</div>
-        <div class="tech-list">
-          <span class="tech-item">Go</span><span class="tech-item">Wails</span><span class="tech-item">React</span>
-          <span class="tech-item">P2P Sync</span><span class="tech-item">GitHub Actions</span>
+      <div class="carousel" data-carousel>
+        <div class="carousel-track">
+          <div class="carousel-slide"><img src="images/domainpilot-hero.png" alt="DomainPilot landing page"></div>
+          <div class="carousel-slide"><img src="images/domainpilot-dashboard.png" alt="DomainPilot registrar integrations"></div>
         </div>
-        <a href="project-forge.html" class="detail-link">view details →</a>
-      </div>
-
-      <div class="cmd-line">
-        <span class="prompt"><span class="arrow">➜</span>  <span class="dir">~</span> <span class="git-wrap">git:(<span class="git-branch">main</span>)</span></span>
-        <span class="command"> cat projects/RaceTelemetry/README.md</span>
-      </div>
-      <div class="project-block">
-        <div class="project-name"><a href="project-racetelemetry.html" style="color:inherit">Race Telemetry</a></div>
-        <div class="project-org">Personal Project — <a href="https://racetelemetry.com" target="_blank">racetelemetry.com</a></div>
-        <div class="project-desc">F1 race replay and analytics platform. Real-time car positioning from GPS telemetry data, interactive track maps, standings tower, tire strategy breakdowns, and historical data from 1950 to present.</div>
-        <div class="project-stats">
-          <span><span class="stat-val">76</span> <span class="stat-lbl">seasons</span></span>
-          <span><span class="stat-val">1,100+</span> <span class="stat-lbl">races</span></span>
-        </div>
-        <div class="tech-list">
-          <span class="tech-item">Next.js</span><span class="tech-item">React</span><span class="tech-item">TypeScript</span>
-          <span class="tech-item">Python</span><span class="tech-item">OpenF1 API</span>
-        </div>
-        <a href="project-racetelemetry.html" class="detail-link">view details →</a>
-      </div>
-
-      <div class="cmd-line" style="margin-top:32px">
-        <span class="prompt"><span class="arrow">➜</span>  <span class="dir">~</span> <span class="git-wrap">git:(<span class="git-branch">main</span>)</span></span>
-        <span class="command"> ls projects/tools/</span>
-      </div>
-      <div class="small-projects">
-        <div class="small-project">
-          <div class="small-project-name">iOS Simulator MCP Server</div>
-          <div class="small-project-desc">30-tool MCP server wrapping xcrun simctl for AI-assisted iOS development and testing automation.</div>
-          <div class="tech-list"><span class="tech-item">MCP</span><span class="tech-item">iOS</span><span class="tech-item">xcrun</span></div>
-        </div>
-        <div class="small-project">
-          <div class="small-project-name">FastPilot</div>
-          <div class="small-project-desc">Fastlane plugin automating App Store releases using Claude API for changelog generation.</div>
-          <div class="tech-list"><span class="tech-item">Fastlane</span><span class="tech-item">Claude API</span><span class="tech-item">Ruby</span></div>
-        </div>
-        <div class="small-project">
-          <div class="small-project-name">Loke</div>
-          <div class="small-project-desc">Social platform for skaters. Scaled from zero to 90,000 users as sole developer. ~1,000 DAU.</div>
-          <div class="tech-list"><span class="tech-item">Rails</span><span class="tech-item">Hetzner</span><span class="tech-item">90K users</span></div>
-        </div>
-        <div class="small-project">
-          <div class="small-project-name">CodeForge</div>
-          <div class="small-project-desc">Native SwiftUI agentic coding assistant with local file tools, Git integration, and remote Mac build server.</div>
-          <div class="tech-list"><span class="tech-item">SwiftUI</span><span class="tech-item">Claude API</span><span class="tech-item">Git</span></div>
+        <div class="carousel-nav"></div>
+        <div class="carousel-arrows">
+          <button class="carousel-arrow" data-prev aria-label="Previous">‹</button>
+          <button class="carousel-arrow" data-next aria-label="Next">›</button>
         </div>
       </div>
     </div>
 
-    <!-- Experience -->
-    <div class="section" id="experience">
-      <div class="cmd-line">
-        <span class="prompt"><span class="arrow">➜</span>  <span class="dir">~</span> <span class="git-wrap">git:(<span class="git-branch">main</span>)</span></span>
-        <span class="command"> cat experience.log</span>
+    <!-- Agent Desk -->
+    <div class="project reveal">
+      <div style="padding:0 24px">
+        <div class="project-info">
+          <div class="project-title">Agent Desk</div>
+          <div class="project-meta">
+            <div class="project-role">Open Source</div>
+            <div class="project-tags">
+              <span class="project-tag">Go</span>
+              <span class="project-tag">Wails</span>
+              <span class="project-tag">React</span>
+              <span class="project-tag">P2P</span>
+            </div>
+          </div>
+        </div>
+        <p class="project-desc">Cross-platform desktop app for managing AI agent instruction files across Claude Code, Gemini, Cursor, Kiro, Windsurf, Copilot, and more. Peer-to-peer sync across machines — no account required.</p>
+        <a href="https://github.com/warunacds" class="project-link" target="_blank">View on GitHub</a>
       </div>
-      <div class="output">
-        <div class="exp-entry">
-          <div class="exp-period">2024 — Present</div>
-          <div class="exp-role">Lead Application Engineer</div>
+      <div class="carousel" data-carousel>
+        <div class="carousel-track">
+          <div class="carousel-slide"><img src="images/agentdesk-app.png" alt="Agent Desk application" style="aspect-ratio:auto;object-fit:contain"></div>
+        </div>
+        <div class="carousel-nav"></div>
+        <div class="carousel-arrows">
+          <button class="carousel-arrow" data-prev aria-label="Previous">‹</button>
+          <button class="carousel-arrow" data-next aria-label="Next">›</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Race Telemetry -->
+    <div class="project reveal">
+      <div style="padding:0 24px">
+        <div class="project-info">
+          <div class="project-title">Race Telemetry</div>
+          <div class="project-meta">
+            <div class="project-role">Personal Project</div>
+            <div class="project-tags">
+              <span class="project-tag">Next.js</span>
+              <span class="project-tag">TypeScript</span>
+              <span class="project-tag">Python</span>
+            </div>
+          </div>
+        </div>
+        <div class="project-stats">
+          <div><div class="project-stat-value">76</div><div class="project-stat-label">Seasons</div></div>
+          <div><div class="project-stat-value">1,100+</div><div class="project-stat-label">Races</div></div>
+        </div>
+        <p class="project-desc">F1 race replay and analytics platform. Real-time car positioning from GPS telemetry, interactive track maps, standings tower, tire strategies — from 1950 to today.</p>
+        <a href="https://racetelemetry.com" class="project-link" target="_blank">Visit racetelemetry.com</a>
+      </div>
+      <div class="carousel" data-carousel>
+        <div class="carousel-track">
+          <div class="carousel-slide"><img src="images/racetelemetry-hero.png" alt="Race Telemetry hero"></div>
+          <div class="carousel-slide"><img src="images/racetelemetry-features.png" alt="Race Telemetry features"></div>
+        </div>
+        <div class="carousel-nav"></div>
+        <div class="carousel-arrows">
+          <button class="carousel-arrow" data-prev aria-label="Previous">‹</button>
+          <button class="carousel-arrow" data-next aria-label="Next">›</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Smaller projects -->
+    <div class="reveal" style="padding:0 24px;margin-top:60px">
+      <div class="projects-label">Other Work</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px">
+        <div class="other-card" style="padding:20px;border:1px solid var(--border);border-radius:var(--radius)">
+          <div style="font-size:16px;font-weight:600;margin-bottom:4px">iOS Simulator MCP</div>
+          <p style="font-size:13px;color:var(--text-tertiary);line-height:1.6">30-tool MCP server wrapping xcrun simctl for AI-assisted iOS development.</p>
+        </div>
+        <div class="other-card" style="padding:20px;border:1px solid var(--border);border-radius:var(--radius)">
+          <div style="font-size:16px;font-weight:600;margin-bottom:4px">FastPilot</div>
+          <p style="font-size:13px;color:var(--text-tertiary);line-height:1.6">Fastlane plugin for App Store releases using Claude API for changelogs.</p>
+        </div>
+        <div class="other-card" style="padding:20px;border:1px solid var(--border);border-radius:var(--radius)">
+          <div style="font-size:16px;font-weight:600;margin-bottom:4px">Loke</div>
+          <p style="font-size:13px;color:var(--text-tertiary);line-height:1.6">Social platform for skaters. Scaled from zero to 90,000 users solo.</p>
+        </div>
+        <div class="other-card" style="padding:20px;border:1px solid var(--border);border-radius:var(--radius)">
+          <div style="font-size:16px;font-weight:600;margin-bottom:4px">CodeForge</div>
+          <p style="font-size:13px;color:var(--text-tertiary);line-height:1.6">Native SwiftUI agentic coding assistant with Git integration.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="exp-section" id="experience">
+  <div class="container">
+    <div class="exp-label">Experience</div>
+    <div class="exp-list">
+      <div class="exp-item reveal">
+        <div class="exp-period">2024 — Present</div>
+        <div class="exp-details">
+          <h3>Lead Application Engineer</h3>
           <div class="exp-company">Paro AI</div>
-          <div class="exp-desc">Leading application engineering for an AI-powered platform. Driving architecture decisions, code reviews, mentoring, and developer workflows.</div>
+          <div class="exp-desc">Leading application engineering for an AI-powered platform. Architecture decisions, code reviews, mentoring, and developer workflows.</div>
         </div>
-        <div class="exp-entry">
-          <div class="exp-period">2018 — 2024</div>
-          <div class="exp-role">Senior iOS Engineer (Enterprise)</div>
-          <div class="exp-company">Contract — Johnson & Johnson, Aetna, Daiichi Sankyo</div>
-          <div class="exp-desc">Enterprise iOS apps with Microsoft Intune SDK integration. MDM-compliant, secure data handling under strict healthcare regulatory requirements.</div>
+      </div>
+      <div class="exp-item reveal">
+        <div class="exp-period">2018 — 2024</div>
+        <div class="exp-details">
+          <h3>Senior iOS Engineer (Enterprise)</h3>
+          <div class="exp-company">Johnson & Johnson, Aetna, Daiichi Sankyo</div>
+          <div class="exp-desc">Enterprise iOS apps with Microsoft Intune SDK. MDM-compliant, secure data handling under healthcare regulatory requirements.</div>
         </div>
-        <div class="exp-entry">
-          <div class="exp-period">2016 — 2018</div>
-          <div class="exp-role">Founder & Full-Stack Developer</div>
+      </div>
+      <div class="exp-item reveal">
+        <div class="exp-period">2016 — 2018</div>
+        <div class="exp-details">
+          <h3>Founder & Full-Stack Developer</h3>
           <div class="exp-company">Loke — Social Platform</div>
           <div class="exp-desc">Built and scaled from zero to 90,000 users as sole engineer. All architecture and product decisions.</div>
         </div>
       </div>
     </div>
+  </div>
+</section>
 
-    <!-- Skills -->
-    <div class="section" id="skills">
-      <div class="cmd-line">
-        <span class="prompt"><span class="arrow">➜</span>  <span class="dir">~</span> <span class="git-wrap">git:(<span class="git-branch">main</span>)</span></span>
-        <span class="command"> cat ~/.skills</span>
-      </div>
-      <div class="skills-grid">
-        <div class="skill-cat"><div class="skill-cat-name"># Languages</div><div class="skill-cat-items">Swift, Ruby, Go, TypeScript, JavaScript, Python, Kotlin</div></div>
-        <div class="skill-cat"><div class="skill-cat-name"># Backend</div><div class="skill-cat-items">Rails 8, PostgreSQL, TimescaleDB, Redis, Action Cable, Good Job</div></div>
-        <div class="skill-cat"><div class="skill-cat-name"># Frontend</div><div class="skill-cat-items">React 19, Next.js 16, Vue.js, Tailwind CSS, Hotwire/Turbo</div></div>
-        <div class="skill-cat"><div class="skill-cat-name"># Mobile</div><div class="skill-cat-items">SwiftUI, UIKit, Kotlin Multiplatform, Intune SDK</div></div>
-        <div class="skill-cat"><div class="skill-cat-name"># Desktop</div><div class="skill-cat-items">Wails (Go + React), cross-platform macOS/Win/Linux</div></div>
-        <div class="skill-cat"><div class="skill-cat-name"># Infrastructure</div><div class="skill-cat-items">Fly.io, AWS, Vercel, Cloudflare, Docker, Stripe, Sentry, Grafana</div></div>
-      </div>
+<section class="cta-section" id="contact">
+  <div class="container">
+    <h2>Let's work together</h2>
+    <p>Open to Product Engineer, Founding Engineer, and Lead roles worldwide.</p>
+    <button class="cta-email" onclick="copyEmail()">
+      hello@waruna.dev
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+    </button>
+  </div>
+</section>
+
+<div class="toast" id="toast">Email copied</div>
+
+<footer>
+  <div class="container">
+    <div class="footer-copy">© 2026 Waruna D. Built in Sri Lanka.</div>
+    <div class="footer-links">
+      <a href="https://github.com/warunacds" target="_blank">GitHub</a>
+      <a href="https://linkedin.com/in/warunacds" target="_blank">LinkedIn</a>
+      <a href="mailto:hello@waruna.dev">Email</a>
     </div>
-
-    <!-- Contact -->
-    <div class="footer-section" id="contact">
-      <div class="cmd-line">
-        <span class="prompt"><span class="arrow">➜</span>  <span class="dir">~</span> <span class="git-wrap">git:(<span class="git-branch">main</span>)</span></span>
-        <span class="command"> cat contact.txt</span>
-      </div>
-      <div class="output">
-        <div class="footer-cta">Let's build something</div>
-        <p>Open to Product Engineer, Founding Engineer, and Lead roles worldwide.</p>
-        <div class="footer-links">
-          <a href="mailto:hello@waruna.dev">hello@waruna.dev</a>
-          <a href="https://github.com/warunacds" target="_blank">github.com/warunacds</a>
-          <a href="https://linkedin.com/in/warunacds" target="_blank">linkedin.com/in/warunacds</a>
-        </div>
-        <div class="footer-copy">© 2026 Waruna D. Built with care in Sri Lanka.</div>
-      </div>
-      <div class="cmd-line" style="margin-top:24px">
-        <span class="prompt"><span class="arrow">➜</span>  <span class="dir">~</span> <span class="git-wrap">git:(<span class="git-branch">main</span>)</span></span>
-        <span class="cursor"></span>
-      </div>
-    </div>
-
   </div>
-</div>
-
-<!-- Status Bar -->
-<div class="status-bar">
-  <div class="status-left">
-    <span class="mode-badge">NORMAL</span>
-    <span class="status-item">waruna-portfolio.sh</span>
-    <span class="status-item">utf-8</span>
-  </div>
-  <div class="status-right">
-    <button class="theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">theme: <span id="theme-label">dark</span></button>
-    <span class="status-item" id="scroll-pct">Top</span>
-  </div>
-</div>
+</footer>
 
 <script>
-function toggleTheme(){
-  var h=document.documentElement;
-  var next=h.getAttribute('data-theme')==='dark'?'light':'dark';
-  h.setAttribute('data-theme',next);
-  localStorage.setItem('theme',next);
-  document.getElementById('theme-label').textContent=next;
-}
+// Theme toggle
 (function(){
-  var s=localStorage.getItem('theme');
-  if(s){document.documentElement.setAttribute('data-theme',s);document.getElementById('theme-label').textContent=s;}
+  var btn=document.getElementById('themeToggle');
+  if(!btn)return;
+  function syncAria(){
+    var isDark=document.documentElement.getAttribute('data-theme')==='dark';
+    btn.setAttribute('aria-label',isDark?'Switch to light mode':'Switch to dark mode');
+    btn.setAttribute('aria-pressed',isDark?'true':'false');
+  }
+  syncAria();
+  btn.addEventListener('click',function(){
+    var isDark=document.documentElement.getAttribute('data-theme')==='dark';
+    if(isDark){
+      document.documentElement.removeAttribute('data-theme');
+      try{localStorage.setItem('theme-dejan','light');}catch(e){}
+    }else{
+      document.documentElement.setAttribute('data-theme','dark');
+      try{localStorage.setItem('theme-dejan','dark');}catch(e){}
+    }
+    syncAria();
+  });
 })();
 
-// Scroll reveal
-var observer=new IntersectionObserver(function(entries){
-  entries.forEach(function(e){if(e.isIntersecting)e.target.classList.add('visible');});
-},{threshold:0.1});
-document.querySelectorAll('.section').forEach(function(s){observer.observe(s);});
+// Copy email
+function copyEmail(){
+  navigator.clipboard.writeText('hello@waruna.dev').then(function(){
+    var t=document.getElementById('toast');
+    t.classList.add('visible');
+    setTimeout(function(){t.classList.remove('visible');},1400);
+  });
+}
 
-// Scroll percentage
-window.addEventListener('scroll',function(){
-  var pct=Math.round(window.scrollY/(document.body.scrollHeight-window.innerHeight)*100);
-  var el=document.getElementById('scroll-pct');
-  if(pct<=2)el.textContent='Top';
-  else if(pct>=98)el.textContent='Bot';
-  else el.textContent=pct+'%';
+// Carousels
+document.querySelectorAll('[data-carousel]').forEach(function(carousel){
+  var track=carousel.querySelector('.carousel-track');
+  var slides=carousel.querySelectorAll('.carousel-slide');
+  var navContainer=carousel.querySelector('.carousel-nav');
+  var prevBtn=carousel.querySelector('[data-prev]');
+  var nextBtn=carousel.querySelector('[data-next]');
+  var current=0;
+
+  if(slides.length<=1){
+    navContainer.style.display='none';
+    carousel.querySelector('.carousel-arrows').style.display='none';
+    return;
+  }
+
+  // Build dots
+  for(var i=0;i<slides.length;i++){
+    var dot=document.createElement('button');
+    dot.className='carousel-dot'+(i===0?' active':'');
+    dot.setAttribute('aria-label','Slide '+(i+1));
+    (function(idx){dot.addEventListener('click',function(){goTo(idx);});})(i);
+    navContainer.appendChild(dot);
+  }
+
+  function goTo(idx){
+    current=idx;
+    track.style.transform='translateX(-'+current*100+'%)';
+    var dots=navContainer.querySelectorAll('.carousel-dot');
+    for(var j=0;j<dots.length;j++){
+      dots[j].classList.toggle('active',j===current);
+    }
+  }
+
+  prevBtn.addEventListener('click',function(){goTo(current<=0?slides.length-1:current-1);});
+  nextBtn.addEventListener('click',function(){goTo(current>=slides.length-1?0:current+1);});
+
+  // Touch/drag
+  var startX=0,dragging=false;
+  carousel.addEventListener('touchstart',function(e){startX=e.touches[0].clientX;dragging=true;});
+  carousel.addEventListener('touchend',function(e){
+    if(!dragging)return;dragging=false;
+    var diff=startX-e.changedTouches[0].clientX;
+    if(Math.abs(diff)>50){diff>0?nextBtn.click():prevBtn.click();}
+  });
 });
+
+// Scroll reveal
+var obs=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);}});
+},{threshold:0.08});
+document.querySelectorAll('.reveal').forEach(function(el){obs.observe(el);});
+
+// What-list stagger reveal
+var whatObs=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting){
+      var items=e.target.querySelectorAll('li');
+      items.forEach(function(li,i){
+        setTimeout(function(){li.classList.add('visible');},i*80);
+      });
+      whatObs.unobserve(e.target);
+    }
+  });
+},{threshold:0.2});
+var whatList=document.querySelector('.what-list');
+if(whatList)whatObs.observe(whatList);
 </script>
 </body>
 </html>
