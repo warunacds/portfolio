@@ -86,12 +86,20 @@ function readPosts() {
       ? slugify(data.slug)
       : slugify(file.replace(/\.md$/, '').replace(/^\d{4}-\d{2}-\d{2}-/, ''));
 
+    const tags = Array.isArray(data.tags)
+      ? data.tags.map(t => String(t).trim()).filter(Boolean)
+      : (typeof data.tags === 'string'
+          ? data.tags.split(',').map(t => t.trim()).filter(Boolean)
+          : []);
+
     return {
       file,
       slug,
       title: data.title,
+      subtitle: data.subtitle || '',
       date: new Date(data.date),
       excerpt: data.excerpt || '',
+      tags,
       bodyMd: content,
     };
   });
@@ -103,13 +111,20 @@ function readPosts() {
 function renderIndex(posts) {
   const items = posts.length
     ? `<ul class="post-list">
-${posts.map(p => `      <li class="post-item">
+${posts.map(p => {
+  const blurb = p.excerpt || p.subtitle || '';
+  const tagsHtml = p.tags.length
+    ? `<div class="post-tags">${p.tags.map(t => `<span class="post-tag">${escapeHtml(t)}</span>`).join('')}</div>`
+    : '';
+  return `      <li class="post-item">
         <a href="/blog/${p.slug}.html">
           <div class="post-meta">${escapeHtml(formatDate(p.date))}</div>
           <h2 class="post-title">${escapeHtml(p.title)}</h2>
-          ${p.excerpt ? `<p class="post-excerpt">${escapeHtml(p.excerpt)}</p>` : ''}
+          ${blurb ? `<p class="post-excerpt">${escapeHtml(blurb)}</p>` : ''}
+          ${tagsHtml}
         </a>
-      </li>`).join('\n')}
+      </li>`;
+}).join('\n')}
     </ul>`
     : `<div class="empty-state">No posts yet. Check back soon.</div>`;
 
@@ -145,7 +160,15 @@ function renderPost(post) {
   const bodyHtml = marked.parse(post.bodyMd);
   const desc = post.excerpt
     ? escapeHtml(post.excerpt)
+    : post.subtitle
+    ? escapeHtml(post.subtitle)
     : escapeHtml(post.bodyMd.replace(/\n+/g, ' ').slice(0, 160));
+  const subtitleHtml = post.subtitle
+    ? `<p class="post-subtitle">${escapeHtml(post.subtitle)}</p>`
+    : '';
+  const tagsHtml = post.tags.length
+    ? `<div class="post-tags post-tags-article">${post.tags.map(t => `<span class="post-tag">${escapeHtml(t)}</span>`).join('')}</div>`
+    : '';
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -165,7 +188,11 @@ ${headerHtml(true)}
     <article>
       <a href="/blog/" class="post-back">Back to blog</a>
       <h1>${escapeHtml(post.title)}</h1>
-      <div class="post-date">${escapeHtml(formatDate(post.date))}</div>
+      ${subtitleHtml}
+      <div class="post-meta-row">
+        <span class="post-date">${escapeHtml(formatDate(post.date))}</span>
+        ${tagsHtml}
+      </div>
       <div class="post-body">
 ${bodyHtml}
       </div>

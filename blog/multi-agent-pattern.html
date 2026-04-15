@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A multi-agent pattern for Claude Code — Waruna</title>
+<meta name="description" content="Software teams aren&#39;t councils. They&#39;re hierarchies. Here&#39;s a 487-line Ruby script that takes the metaphor seriously.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Newsreader:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+<script>(function(){try{if(localStorage.getItem('theme-dejan')==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+<link rel="stylesheet" href="/blog/blog.css">
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo"><img src="/images/avatar_small.jpg" alt="Waruna" class="logo-avatar">Waruna</a>
+    <nav class="nav-links">
+      <a href="/#projects">Projects</a>
+      <a href="/#experience">Experience</a>
+      <a href="/blog/" class="active">Blog</a>
+      <a href="/#contact">Contact</a>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
+        <svg class="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        <svg class="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="container">
+    <article>
+      <a href="/blog/" class="post-back">Back to blog</a>
+      <h1>A multi-agent pattern for Claude Code</h1>
+      <p class="post-subtitle">Software teams aren&#39;t councils. They&#39;re hierarchies. Here&#39;s a 487-line Ruby script that takes the metaphor seriously.</p>
+      <div class="post-meta-row">
+        <span class="post-date">April 10, 2026</span>
+        <div class="post-tags post-tags-article"><span class="post-tag">claude-code</span><span class="post-tag">agentic</span><span class="post-tag">multi-agent</span><span class="post-tag">ruby</span><span class="post-tag">workflows</span></div>
+      </div>
+      <div class="post-body">
+<p>There&#39;s a recurring idea in the AI tooling world right now that you can get better code out of LLMs by having several of them collaborate. The framing is usually some variation of &quot;council&quot; or &quot;panel&quot; — five frontier models deliberate on your question, debate across multiple rounds, vote, and produce a synthesized answer. Andrej Karpathy shipped a weekend hack of this in late 2025 and it went viral. There are now at least four paid SaaS products built on the same pattern.</p>
+<p>For general questions, this works fine. For coding, it falls apart, and the failure mode is interesting enough to be worth dissecting — because the right structure for multi-agent coding is hiding in plain sight, and it&#39;s not a council.</p>
+<h2>What&#39;s wrong with the council pattern for code</h2>
+<p>Three things, in order of how badly they break.</p>
+<p><strong>Code is verifiable, and a council ignores that.</strong> When you ask five models &quot;should we use Postgres or DynamoDB?&quot; the question has no ground truth — you&#39;re sampling perspectives because reasonable engineers genuinely disagree. When you ask five models &quot;implement a rate limiter for this endpoint,&quot; the question has ground truth: the code either passes the tests or it doesn&#39;t. Voting on which implementation is best when you can just <em>run them all and see</em> is theater. The judge should be the test suite, not another LLM.</p>
+<p><strong>Councils are flat, and software work isn&#39;t.</strong> Real engineering teams aren&#39;t five equally-weighted voices brainstorming in a room. They&#39;re hierarchies with roles. The tech lead doesn&#39;t poll the team on every line of code — they decompose the task, assign work to the people best suited to each piece, and stitch the results back together. Most of the actual work happens in parallel, not in committee. Meetings are decision points, not the default mode.</p>
+<p><strong>Councils burn tokens linearly with rounds.</strong> Five models × three rounds × N turns in a conversation gets expensive fast, and most of that cost is models re-deciding things that were already decided. The Sonnet engineer working on the OAuth callback controller doesn&#39;t need to spend tokens reasoning about whether OAuth is the right choice — that&#39;s settled. They need to execute their piece well. A council pays everyone to think about everything; a team pays each person to think about their part.</p>
+<p>So if not a council, what?</p>
+<h2>The team metaphor, taken seriously</h2>
+<p>Imagine you give a real engineering team a real task: <em>&quot;Add OAuth login with Google and GitHub, including tests.&quot;</em> Watch what they actually do.</p>
+<p>A tech lead reads the task and produces a plan. Not code — a plan. They look at the codebase, understand the constraints, and decide: this is three pieces of work. The gem and config setup is one engineer&#39;s afternoon. The callbacks controller and routes is a different engineer who&#39;ll own that surface area. The user model changes and the tests are a third engineer who&#39;ll set up the test fixtures and cover the failure modes. The lead writes a brief for each engineer that includes which files they touch, what they implement, and crucially, what interface their piece must honor so the others can plug in.</p>
+<p>The engineers go to their own branches and work in parallel. They don&#39;t see each other&#39;s work. They don&#39;t need to. Engineer A trusts that engineer B will produce a <code>User.from_oauth(provider, payload)</code> method because that was in the contract; they just call it. The juniors don&#39;t need to understand the whole system, they need to understand their slice and the seams.</p>
+<p>A QA engineer writes the test plan in parallel with implementation, not after. The implementers know what they&#39;re targeting; QA isn&#39;t just rubber-stamping whatever felt right.</p>
+<p>When the engineers finish, the lead does the integration. They merge the branches, watch what conflicts, run the test suite, fix the seams that don&#39;t quite line up. If something fundamentally broken comes back from an engineer, the lead kicks it back rather than rewriting it themselves. The lead is the only one who talks to the human.</p>
+<p>This is how almost every functional engineering team works, and it&#39;s almost the exact opposite of how a council works. The team is hierarchical, asynchronous, parallel, and accountable. The council is flat, synchronous, sequential, and diffuse.</p>
+<p>The interesting thing about mapping this onto LLMs is that the strengths are <em>actually</em> different now in ways that mirror real seniority. Opus 4.6 is genuinely better at long-horizon reasoning the way a senior engineer is. Sonnet is fast and competent at focused tasks the way a strong mid-level is. Gemini 2.5 Pro has the long-context superpower that&#39;s analogous to the engineer who actually read all the docs. These aren&#39;t marketing claims — they&#39;re observable in real use. So when you compose a &quot;team&quot; of different models for different roles, you&#39;re exploiting genuine differentiation, not pretending the models are interchangeable.</p>
+<h2>Why subagents aren&#39;t enough</h2>
+<p>Claude Code ships with a subagent system that looks at first glance like it solves this. You define specialists in markdown files — <code>architect.md</code>, <code>critic.md</code>, <code>implementer.md</code> — give each its own system prompt, tools, and model. The main agent delegates to them based on their description. Each subagent gets its own context window. It feels like a team.</p>
+<p>It isn&#39;t. There&#39;s a critical limitation: <strong>subagents share the parent session&#39;s working directory</strong>. Two parallel subagents editing the same file collide. They have isolated context windows, which is what people usually mean when they say &quot;isolated,&quot; but they don&#39;t have isolated filesystems. There&#39;s no way around this from inside Claude Code&#39;s subagent system, because subagents are designed to <em>help</em> a single main session, not to <em>be</em> multiple independent sessions.</p>
+<p>If you want multiple Claude Code sessions running in true parallel, each in its own checkout, with no shared state — and you do, because that&#39;s what real engineers on real branches are — you need to step outside Claude Code&#39;s subagent system entirely.</p>
+<h2>The architecture that actually works</h2>
+<pre><code>your shell or a tiny orchestrator script
+        │
+        ├─→ claude -p &quot;&lt;lead prompt&gt;&quot; in main repo
+        │     ↓ produces plan.json with N work items
+        │
+        ├─→ for each work item, in parallel:
+        │     git worktree add ../proj-eng-N -b team/eng-N
+        │     (cd ../proj-eng-N &amp;&amp; claude -p &quot;&lt;engineer brief&gt;&quot;) &amp;
+        │
+        ├─→ wait for all engineers to finish
+        │
+        ├─→ git worktree add ../proj-integration -b team/integration
+        │     cd ../proj-integration
+        │     merge each engineer branch
+        │     claude -p &quot;&lt;integration + test + report prompt&gt;&quot;
+        │
+        └─→ present unified diff to you
+</code></pre>
+<p>The key piece is <code>claude -p &quot;&lt;prompt&gt;&quot;</code> — Claude Code&#39;s headless / non-interactive mode. It runs a Claude Code session as a subprocess, executes the prompt, prints the result, and exits. People use it in CI pipelines. It&#39;s exactly what you need: each engineer is a separate <code>claude -p</code> process started in a separate worktree directory. They have no shared context, no shared filesystem, no awareness of each other. They&#39;re truly independent processes the way real engineers on different branches are. The orchestrator — a small script in whatever language you like — is the only thing that knows about all of them.</p>
+<p>This sidesteps the subagent limitation entirely because you&#39;re not using subagents. You&#39;re using shell, git, and the headless mode of the CLI. The &quot;lead&quot; isn&#39;t a subagent either — it&#39;s a separate <code>claude -p</code> invocation the orchestrator runs first, whose only job is to read the task, look at the codebase, and produce a structured plan that the orchestrator can parse. The orchestrator then loops over the work items, creates worktrees, dispatches engineers in parallel, and finally fires off an integration step in a fresh worktree that merges the branches and runs the tests.</p>
+<h2>What changes when you build it this way</h2>
+<p>True parallelism. With <code>&amp; wait</code> in bash (or <code>Thread.new</code> and <code>Thread#value</code> in Ruby), all engineers literally run at the same wall-clock time. Subagents in Claude Code, even when &quot;delegated in parallel,&quot; go through the parent session&#39;s serialized tool-use loop. The orchestrator approach gives you actual N× speedup on independent work, not just context isolation.</p>
+<p>True filesystem isolation. Each worktree is a real git checkout. Engineer A can rewrite <code>sessions_controller.rb</code> in their worktree while Engineer B is rewriting it differently in theirs. When you merge, you find out whether their decisions were compatible. <strong>Conflicts at merge time are information</strong> — they tell you the lead&#39;s decomposition didn&#39;t cleanly separate concerns, which is exactly the feedback signal you want. Most multi-agent systems try to prevent conflicts; this one uses them as a diagnostic.</p>
+<p>Different models per role, easily. Each <code>claude -p</code> call can specify <code>--model</code> independently. Lead on Opus, engineers on Sonnet, integration on Opus. Or mix providers entirely — replace one of the engineer slots with a <code>gemini -p</code> or an OpenAI Codex CLI call if you want true cross-model diversity. The orchestrator doesn&#39;t care; it just dispatches commands and waits.</p>
+<p>A real chain of accountability. When something&#39;s wrong, you can trace it. Was it the lead&#39;s plan? An engineer&#39;s execution? A missed case in QA&#39;s test plan? The logs from each <code>claude -p</code> invocation are sitting right there in <code>.team/logs/</code>. In a council, when the consensus is wrong, nobody owns it — they all do, which means none of them do.</p>
+<h2>The hard parts (because there are some)</h2>
+<p>This isn&#39;t a free lunch.</p>
+<p><strong>The lead&#39;s plan format has to be machine-parseable.</strong> You need its output to be JSON the orchestrator can iterate over. That means a strict schema in the prompt and validation on the way out. About 5% of the time the lead ignores the &quot;respond with only JSON&quot; instruction and wraps it in prose; you handle that with a fallback extractor that pulls the first <code>{...}</code> it finds. If parsing fails twice, the right move is to surface to the human, not to loop forever.</p>
+<p><strong>Engineer briefs are where the prompt engineering really lives.</strong> Each brief includes the engineer&#39;s specific work item, the files they&#39;re allowed to touch, the interface contract they need to honor for the other engineers&#39; pieces, and explicit instructions to <em>not</em> touch anything outside scope. The lead writes these as part of the plan. Getting this right is most of the work, and it&#39;s the part that benefits most from iteration.</p>
+<p><strong>Engineers will sometimes blow scope.</strong> Despite &quot;stay in your files&quot; rules in the prompt, occasionally an engineer will edit something outside its assigned list. Git catches it at merge time but it can still cause conflicts. The fix is either tighter prompt language or a post-engineer diff check that rejects out-of-scope changes — but I&#39;d hold off on building that until you&#39;ve actually felt the failure.</p>
+<p><strong>Integration is where the truth comes out.</strong> After all engineers finish, you have N branches that all need to merge cleanly into one. The integration step is where things break — and that&#39;s actually fine, because broken integration is exactly the bug you want to catch early. The integration <code>claude -p</code> invocation gets the merged tree (with conflict markers if any) plus the original task plus all the engineer reports, and its job is to resolve, run tests, and either declare success or kick back to a specific engineer.</p>
+<p><strong>Cost can surprise you.</strong> Each engineer reads files in its worktree, which burns tokens. A typical run with three engineers at default models is somewhere in the $0.50–$3 range, which is fine for non-trivial tasks but ruinous if you point this thing at trivial ones. The discipline is to use it for tasks that genuinely benefit from decomposition, and use plain Claude Code for everything else.</p>
+<h2>What to actually do with this</h2>
+<p>I built the orchestrator as a single Ruby script — about 487 lines, no gems, just stdlib. The whole thing is on GitHub: <a href="https://github.com/warunacds/claude-team">warunacds/claude-team</a>. Drop it on your PATH, run it inside a clean git repo, and it works.</p>
+<pre><code class="language-bash">./team.rb &quot;add OAuth login with Google and GitHub, with tests&quot;
+
+# preview the lead&#39;s plan without executing
+./team.rb --dry-run &quot;refactor the auth module to use a service object&quot;
+
+# nuke all team/* worktrees and branches from a previous run
+./team.rb --cleanup
+</code></pre>
+<p>If you want to test it, pick a task that&#39;s big enough to actually decompose (not a one-line fix), small enough to debug if it goes wrong (not a major refactor), in a repo you&#39;d <code>git reset --hard</code> without crying, and has a fast test suite so the integrator gets quick feedback. Good first targets: &quot;add a new endpoint with a controller, model, and tests&quot;; &quot;implement a feature flag across the existing flag system&quot;; &quot;refactor function X out of file A into a new module B with backward-compatible imports.&quot;</p>
+<p>Bad first targets: anything vague (&quot;improve the codebase&quot;), anything without a clear decomposition (&quot;add tests&quot;), anything touching fewer than five files (overhead exceeds benefit).</p>
+<h2>The bigger point</h2>
+<p>The reason I&#39;m writing this isn&#39;t to evangelize a script. The script is fine — it does what it does, and you can hack on it because it&#39;s 487 lines of straightforward Ruby. The bigger point is that <strong>the metaphors we choose for multi-agent systems shape what we can build with them</strong>, and &quot;council&quot; has been the dominant metaphor for the last few months, and I think it&#39;s the wrong one for code.</p>
+<p>The team metaphor isn&#39;t just better — it maps to something real about how engineering work decomposes. Roles, hierarchy, parallel execution, accountability, integration. These aren&#39;t arbitrary design choices; they&#39;re load-bearing features of how humans build software at scale. We figured this out over decades of trial and error. Pretending we need to redesign the social architecture from scratch because we&#39;re now building with LLMs instead of people is wishful thinking. The architecture works. The agents are different — that&#39;s the only variable that changed.</p>
+<p>If you&#39;re building multi-agent tools right now, the question worth asking isn&#39;t &quot;how do I get these models to vote better?&quot; It&#39;s &quot;what role does this model fill on the team I&#39;m trying to build?&quot; Different question, different answer, much more useful tool.</p>
+<hr>
+<p><em>The orchestrator script and full README are at <a href="https://github.com/warunacds/claude-team">github.com/warunacds/claude-team</a>. It&#39;s a weekend hack, not a product — fork it, hack it, make it yours. If you build something interesting on top of it, let me know.</em></p>
+
+      </div>
+    </article>
+  </div>
+</main>
+<footer>
+  <div class="container">
+    <div>© 2026 Waruna</div>
+    <div><a href="/">← Back to home</a></div>
+  </div>
+</footer>
+<script>(function(){var btn=document.getElementById('themeToggle');if(!btn)return;function sync(){var d=document.documentElement.getAttribute('data-theme')==='dark';btn.setAttribute('aria-label',d?'Switch to light mode':'Switch to dark mode');btn.setAttribute('aria-pressed',d?'true':'false');}sync();btn.addEventListener('click',function(){var d=document.documentElement.getAttribute('data-theme')==='dark';if(d){document.documentElement.removeAttribute('data-theme');try{localStorage.setItem('theme-dejan','light');}catch(e){}}else{document.documentElement.setAttribute('data-theme','dark');try{localStorage.setItem('theme-dejan','dark');}catch(e){}}sync();});})();</script>
+</body>
+</html>

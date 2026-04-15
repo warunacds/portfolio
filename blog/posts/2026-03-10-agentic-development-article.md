@@ -1,7 +1,8 @@
 ---
 title: From Prompts to Process - How Subagents and Skills Improve Agentic Development
-date: 2026-04-10
-excerpt: Better prompts didn't make agentic coding reliable — better process did. Here's how role specialization, review gates, and validation turn Claude Code into a team.
+subtitle: Better prompts didn't make agentic coding reliable — better process did. Here's how role specialization, review gates, and validation turn Claude Code into a team.
+date: 2026-03-10
+tags: [claude-code, agentic, multi-agent, software development]
 ---
 
 Agentic coding tools have changed what's possible in day-to-day software development, but they haven't changed what makes software reliable. The core challenge isn't whether AI can write code. It's whether we can wrap AI with the same process discipline that makes human engineering teams produce trustworthy output.
