@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hello, World — Waruna</title>
+<meta name="description" content="Kicking off the blog — a place for notes on product engineering, shipping, and the craft of building real software.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Newsreader:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+<script>(function(){try{if(localStorage.getItem('theme-dejan')==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+<link rel="stylesheet" href="/blog/blog.css">
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo"><img src="/images/avatar_small.jpg" alt="Waruna" class="logo-avatar">Waruna</a>
+    <nav class="nav-links">
+      <a href="/#projects">Projects</a>
+      <a href="/#experience">Experience</a>
+      <a href="/blog/" class="active">Blog</a>
+      <a href="/#contact">Contact</a>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
+        <svg class="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        <svg class="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="container">
+    <article>
+      <a href="/blog/" class="post-back">Back to blog</a>
+      <h1>Hello, World</h1>
+      <div class="post-date">March 10, 2026</div>
+      <div class="post-body">
+<p>I&#39;ve been meaning to start writing for a while. Less as a broadcast and more as a way to think out loud about the work.</p>
+<h2>What goes here</h2>
+<p>A loose collection of notes on:</p>
+<ul>
+<li><strong>Product engineering</strong> — the intersection of design, code, and what users actually need</li>
+<li><strong>Shipping</strong> — how real software gets out the door (and how it doesn&#39;t)</li>
+<li><strong>Tools &amp; systems</strong> — what I&#39;m using, building, breaking, and fixing</li>
+</ul>
+<h2>How this works</h2>
+<p>This blog is just markdown files in a folder. I drop a new <code>.md</code> into <code>blog/posts/</code>, run <code>npm run build</code>, and a new page appears. No CMS, no database, no friction — the way the web used to be.</p>
+<pre><code class="language-bash"># Add a post
+vim blog/posts/2026-04-20-my-post.md
+
+# Build it
+npm run build
+
+# Ship it
+git commit -am &quot;new post&quot; &amp;&amp; git push
+</code></pre>
+<p>That&#39;s it. More soon.</p>
+
+      </div>
+    </article>
+  </div>
+</main>
+<footer>
+  <div class="container">
+    <div>© 2026 Waruna</div>
+    <div><a href="/">← Back to home</a></div>
+  </div>
+</footer>
+<script>(function(){var btn=document.getElementById('themeToggle');if(!btn)return;function sync(){var d=document.documentElement.getAttribute('data-theme')==='dark';btn.setAttribute('aria-label',d?'Switch to light mode':'Switch to dark mode');btn.setAttribute('aria-pressed',d?'true':'false');}sync();btn.addEventListener('click',function(){var d=document.documentElement.getAttribute('data-theme')==='dark';if(d){document.documentElement.removeAttribute('data-theme');try{localStorage.setItem('theme-dejan','light');}catch(e){}}else{document.documentElement.setAttribute('data-theme','dark');try{localStorage.setItem('theme-dejan','dark');}catch(e){}}sync();});})();</script>
+</body>
+</html>

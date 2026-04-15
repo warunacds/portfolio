@@ -1,3 +1,4 @@
 waruna-dev-portfolio-*.html
 .playwright-mcp/
 .DS_Store
+node_modules/

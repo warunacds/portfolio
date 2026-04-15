@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>From Prompts to Process - How Subagents and Skills Improve Agentic Development — Waruna</title>
+<meta name="description" content="Better prompts didn&#39;t make agentic coding reliable — better process did. Here&#39;s how role specialization, review gates, and validation turn Claude Code into a team.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Newsreader:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+<script>(function(){try{if(localStorage.getItem('theme-dejan')==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+<link rel="stylesheet" href="/blog/blog.css">
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo"><img src="/images/avatar_small.jpg" alt="Waruna" class="logo-avatar">Waruna</a>
+    <nav class="nav-links">
+      <a href="/#projects">Projects</a>
+      <a href="/#experience">Experience</a>
+      <a href="/blog/" class="active">Blog</a>
+      <a href="/#contact">Contact</a>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
+        <svg class="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        <svg class="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="container">
+    <article>
+      <a href="/blog/" class="post-back">Back to blog</a>
+      <h1>From Prompts to Process - How Subagents and Skills Improve Agentic Development</h1>
+      <div class="post-date">April 10, 2026</div>
+      <div class="post-body">
+<p>Agentic coding tools have changed what&#39;s possible in day-to-day software development, but they haven&#39;t changed what makes software reliable. The core challenge isn&#39;t whether AI can write code. It&#39;s whether we can wrap AI with the same process discipline that makes human engineering teams produce trustworthy output.</p>
+<p>Over several months of daily Claude Code use across Rails, SwiftUI, Go, and Next.js projects, a pattern became clear: the most reliable outputs didn&#39;t come from better prompts. They came from better process structure around the prompts. A task handled by a single agent in a single context produced variable results. The same task, routed through role specialization, peer review, and mandatory validation, produced consistently correct output.</p>
+<p>This isn&#39;t a new insight about AI. It&#39;s the same insight engineering managers have applied to human teams for decades. Bounded contexts, specialization, review gates, and verification are what turn individual contributors into reliable teams. When Claude Code introduced subagents and skills, it became possible to apply those same principles to agentic development.</p>
+<p>This post describes how to structure an agentic coding pipeline using Claude Code&#39;s native features, what each piece contributes to accuracy, and where the approach still has limitations worth naming.</p>
+<h2>The two-layer configuration model</h2>
+<p>The foundation is a separation of concerns between global process and project context.</p>
+<p>A global <code>CLAUDE.md</code> file at <code>~/.claude/CLAUDE.md</code> defines <em>how</em> work gets done: roles, handoff protocols, review standards, validation requirements. It stays consistent across every project.</p>
+<p>A project-level <code>CLAUDE.md</code> at the root of each repository defines <em>what</em> the team is working with: tech stack, naming conventions, folder structure, domain language, testing approach. Every project gets its own.</p>
+<pre><code>~/.claude/CLAUDE.md          # Global process — how work happens
+your-project/CLAUDE.md        # Project context — what we&#39;re working with
+</code></pre>
+<p>The separation matters because it lets the process scale. Whether the current task is a SwiftUI screen, a Rails service object, or a Next.js route handler, the workflow structure stays identical. Only the context changes. This reduces the cognitive load of switching between projects and prevents one project&#39;s conventions from leaking into another.</p>
+<p>It also makes the process portable. A team can share a global file as a standard and let each repository define its own context. New engineers joining a project inherit both layers automatically.</p>
+<h2>Role specialization via subagents</h2>
+<p>The most impactful structural decision is using Claude Code&#39;s subagent feature to define specialized roles rather than relying on a single agent to handle everything.</p>
+<p>A single-context agent holds the task definition, implementation, and evaluation in the same working memory. This is the agentic equivalent of asking one engineer to write a feature, review it, and sign off on it in a single pass. It works, but accuracy degrades because no single context can optimize simultaneously for understanding, producing, and critiquing.</p>
+<p>Role specialization distributes these functions across subagents, each with focused context and a single purpose.</p>
+<p><strong>The Tech Lead Orchestrator</strong> is the entry point for every task. It reads the project&#39;s <code>CLAUDE.md</code>, analyzes the requested work, asks clarifying questions before assigning anything, and routes the task to the appropriate specialist. Its single responsibility is understanding the work well enough to hand it off cleanly.</p>
+<p>This addresses a specific failure mode: premature implementation. Without an explicit clarification phase, agents default to filling ambiguity with assumptions, and those assumptions compound through the rest of the pipeline. An early clarification step produces an order of magnitude more accurate outcomes because errors get caught before any code is written.</p>
+<p><strong>Specialist agents</strong> handle implementation in specific domains. A Rails specialist knows the project&#39;s conventions for service objects and background jobs. A SwiftUI specialist knows the project&#39;s state management and navigation patterns. A database specialist handles migrations and schema changes. Each specialist has a narrower context than a generalist agent, which means less noise and higher accuracy.</p>
+<p><strong>The Senior Code Reviewer</strong> sits between implementation and delivery. Its only job is to evaluate the specialist&#39;s work against project standards and known failure modes. It classifies findings into three categories: critical issues that block delivery, warnings that should be addressed, and nits that are optional improvements. If any critical issues exist, the work returns to the specialist with specific feedback.</p>
+<p>The review loop continues until the reviewer approves the output or a cycle limit is reached. In practice, most changes pass on the first or second pass. The review stage isn&#39;t there to catch the majority of issues — it&#39;s there to catch the minority that cause the most damage.</p>
+<p>The combination of these three roles creates natural checkpoints where errors surface early. A mistake in the Tech Lead&#39;s task interpretation gets caught during clarification. A mistake in the specialist&#39;s implementation gets caught during review. This early-error-detection pattern is the same reason human engineering teams use design reviews, code reviews, and QA passes.</p>
+<h2>Fast-track vs full-path routing</h2>
+<p>Not every task warrants the same process overhead. A typo fix doesn&#39;t need a full specification. A new feature does.</p>
+<p>The Tech Lead routes tasks into one of two paths based on complexity.</p>
+<p><strong>Fast-track</strong> handles small, well-bounded changes: single-file edits, formatting changes, configuration tweaks, straightforward renames. The Tech Lead writes a brief instead of a detailed specification and hands it directly to a specialist.</p>
+<p><strong>Full-path</strong> handles everything else: new features, refactors spanning multiple files, architectural changes, anything with non-obvious requirements. The Tech Lead produces a detailed specification with acceptance criteria before routing.</p>
+<p>The critical design decision is that fast-track skips the specification, not the review. Both paths still pass through the Senior Code Reviewer and the validation step. This matters because &quot;trivial&quot; changes are responsible for a disproportionate share of production incidents. A one-line fix that breaks an import is still a broken build. The review and validation stages exist specifically to catch these cases.</p>
+<p>The routing decision itself is lightweight. The Tech Lead classifies the task in a sentence or two and proceeds. Over time, this classification becomes consistent enough to be predictable, which helps when multiple engineers are reviewing outputs from the same pipeline.</p>
+<h2>Skills for domain expertise</h2>
+<p>Subagents handle process. Skills handle domain expertise.</p>
+<p>Claude Code&#39;s skills feature lets you define reusable prompt libraries for specific domains — Rails testing patterns, SwiftUI navigation idioms, database migration conventions, API error handling standards. A skill is effectively a focused reference document that a specialist agent can load when needed.</p>
+<p>The combination is what makes role specialization work in practice. A Rails specialist subagent alone is useful. A Rails specialist with access to a <code>rails-service-objects</code> skill and an <code>rspec-testing-patterns</code> skill produces output that matches your team&#39;s conventions without having to re-explain them in every session.</p>
+<p>Skills are particularly valuable for established patterns: the specific way your team structures controllers, the idiomatic way you handle background job retries, the conventions your codebase follows for error handling. These are patterns that rarely change but often need to be communicated. A skill captures them once.</p>
+<p>They&#39;re less useful for novel problem domains where the right answer isn&#39;t yet clear. If your team is exploring a new architectural approach, a skill would constrain exploration rather than accelerate it. The rule of thumb: skills encode known good patterns; subagents handle the work of applying them.</p>
+<h2>The validation loop</h2>
+<p>Validation is the highest-leverage addition to the pipeline. If a team adopts only one piece of this approach, it should be this one.</p>
+<p>The problem validation solves is a specific failure mode of agentic coding: agents will claim completion without verifying that the code actually works. &quot;The implementation is complete&quot; is not evidence of completion. Compilation is evidence. Tests passing is evidence. A successful build is evidence.</p>
+<p>After the Senior Code Reviewer approves the output, the pipeline requires a validation step that produces objective proof of correctness. The validation strategy depends on the project type:</p>
+<table>
+<thead>
+<tr>
+<th>Project type</th>
+<th>Validation method</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Swift/iOS</td>
+<td><code>xcodebuild</code>, run in iOS Simulator</td>
+</tr>
+<tr>
+<td>Android</td>
+<td>Gradle build, run in Android Emulator</td>
+</tr>
+<tr>
+<td>Web (JS/TS)</td>
+<td><code>npm run build</code> or equivalent</td>
+</tr>
+<tr>
+<td>Rails</td>
+<td><code>bundle exec rails test</code> or <code>rspec</code></td>
+</tr>
+<tr>
+<td>Browser UI</td>
+<td>Playwright or Cypress end-to-end tests</td>
+</tr>
+<tr>
+<td>CLI tools</td>
+<td>Execute the command, verify output</td>
+</tr>
+<tr>
+<td>Libraries</td>
+<td>Run the test suite</td>
+</tr>
+</tbody></table>
+<p>When validation fails, the error output becomes input to the next iteration. This feedback loop is important: the specialist doesn&#39;t just try again. It tries again with the specific error message, stack trace, or test failure that caused the previous attempt to fail. Agentic coding tools are generally good at fixing errors they can see. They&#39;re bad at fixing errors they didn&#39;t know existed.</p>
+<p>Adding the validation step eliminated a whole category of recurring problem: code that compiled in theory but broke when run. Before validation, roughly a third of completed tasks had to be reopened after manual testing revealed missing imports, unused variables, or runtime errors that the agent didn&#39;t anticipate. After validation, that rate dropped to near zero. The review stage now catches a different class of issue: code that compiles and runs but violates project conventions or contains subtle logic bugs.</p>
+<h2>Safety rails</h2>
+<p>Three rules apply across every agent and every stage of the pipeline.</p>
+<p><strong>Never assume, always ask.</strong> If any part of a task is unclear, the agent stops and lists questions before proceeding. This rule matters most in the early stages of a pipeline, where one wrong assumption can compound through every subsequent step. The cost of asking is small. The cost of proceeding on a wrong assumption and discovering it only at validation time is large.</p>
+<p><strong>Destructive actions require confirmation.</strong> Deleting files, renaming files that are imported elsewhere, removing dependencies, running destructive database migrations, and large refactors all require an explicit confirmation step before execution. Agentic tools move quickly, and irreversible actions deserve a deliberate pause. This rule is less about preventing mistakes and more about preventing the specific kind of mistake that can&#39;t be undone by rolling back the code.</p>
+<p><strong>Three-iteration limit.</strong> If the review-validate loop exceeds three cycles without resolution, the Tech Lead halts the pipeline and reports the blocker to the user. The intent is to prevent infinite loops where an agent repeatedly attempts the same failing approach. In practice, if three iterations haven&#39;t produced a working result, the underlying problem usually requires human intervention or a different decomposition of the task.</p>
+<h2>Measuring the impact</h2>
+<p>The approach described here isn&#39;t a controlled experiment. It&#39;s an observational account of what changed across several months of daily use. The measurements are informal but consistent.</p>
+<p><strong>Before adding role specialization and review</strong>, roughly a third of completed tasks needed significant rework after an initial review. The most common failure mode was code that matched the literal request but missed the intent — for example, implementing a feature in a way that worked in isolation but violated the project&#39;s existing patterns.</p>
+<p><strong>After adding role specialization</strong>, the same failure mode dropped substantially. The Tech Lead&#39;s clarification phase surfaced intent mismatches before any code was written, and the Senior Code Reviewer caught the subset that survived clarification. A typical task now passes review on the first or second pass.</p>
+<p><strong>Before adding validation</strong>, roughly a third of tasks claimed completion with code that didn&#39;t compile or didn&#39;t run as specified. After adding validation, this rate dropped to near zero. The review stage shifted from catching compile errors to catching convention violations and subtle bugs, which is a more valuable use of reviewer attention.</p>
+<p><strong>Skills contributed to a different kind of improvement</strong> that&#39;s harder to measure quantitatively. The output became more consistent with project conventions. Engineers reading code produced through the pipeline reported that it looked and felt like code written by someone who had internalized the project&#39;s style — because, in effect, the skill had internalized it.</p>
+<p>None of these numbers are rigorous. They&#39;re informal observations from daily use, subject to the same biases as any self-report. But the direction is consistent enough to be useful: each addition to the pipeline measurably reduced a specific failure mode without introducing new ones.</p>
+<h2>Limitations and open questions</h2>
+<p>Several parts of this approach remain unresolved and worth naming.</p>
+<p><strong>The iteration limit is arbitrary.</strong> Three cycles works most of the time, but some tasks legitimately need more. A better approach would be to classify blocking conditions: &quot;failing for the same reason&quot; should halt quickly, while &quot;making progress but not yet complete&quot; should continue. The current heuristic is blunt.</p>
+<p><strong>Role specialization has diminishing returns.</strong> Adding more subagents creates coordination overhead that eventually outweighs the specialization benefit. The sweet spot in practice is three to five specialized roles, not a full organizational chart. More than that, and the handoffs become the bottleneck.</p>
+<p><strong>Skills encode known patterns.</strong> They accelerate work on established problems and constrain exploration on novel ones. A team introducing a new architectural approach shouldn&#39;t write a skill for it until the approach has stabilized. Otherwise the skill becomes a barrier to revision.</p>
+<p><strong>The approach requires discipline.</strong> If one engineer bypasses the pipeline and commits directly, the quality signal gets noisy. Measuring which outputs went through the pipeline and which didn&#39;t becomes harder. This is fixable with tooling (for example, git hooks that check for pipeline metadata), but it&#39;s currently a social constraint rather than a technical one.</p>
+<p><strong>Process overhead is real.</strong> A task that would take five minutes with a direct prompt might take fifteen minutes through the full pipeline. The tradeoff is worth it for tasks where correctness matters more than speed — which is most production work — but it&#39;s not free. Fast-track routing exists specifically to reduce this overhead for low-risk changes.</p>
+<h2>Getting started</h2>
+<p>The full pipeline is a commitment. A smaller starting point produces most of the benefit.</p>
+<p>If you&#39;re going to adopt one piece, adopt validation. Add a rule to your existing Claude Code setup that every task must end with a measurable proof of correctness — a build, a test run, a successful execution. This single change addresses the most frequent failure mode of agentic coding and requires no subagent configuration.</p>
+<p>If you&#39;re going to adopt two pieces, add the clarification step. Before any specialist implementation, require an explicit reading of the project context and an explicit list of clarifying questions. This catches intent mismatches early, which is where they&#39;re cheapest to fix.</p>
+<p>If you&#39;re going to adopt the full pipeline, start with one project and one team. Treat it as an experiment. Measure what changes — both the wins and the overhead. The value isn&#39;t in copying someone else&#39;s workflow. It&#39;s in understanding why each piece exists so you can adapt it to your own constraints.</p>
+<h2>Closing</h2>
+<p>The core insight isn&#39;t about Claude Code specifically. It&#39;s that agentic coding tools need process scaffolding to produce reliable results, and that scaffolding is the same scaffolding we&#39;ve used for human engineering teams for decades: task decomposition, specialization, peer review, and verification.</p>
+<p>The tools changed. The principles didn&#39;t.</p>
+<p>What&#39;s new is that the scaffolding is now configuration — a few files in a repository that define roles, handoffs, and validation requirements. This makes engineering process infrastructure in a way it wasn&#39;t before. Teams that take the time to define their process explicitly will produce more reliable agentic development than teams that rely on the default behavior of the tools. That&#39;s a competitive advantage worth investing in.</p>
+<hr>
+<p><em>Using Claude Code and want to see the complete CLAUDE.md? Drop a comment below — happy to share the whole thing. or see it here <a href="https://github.com/warunacds/claude-config/">https://github.com/warunacds/claude-config/</a></em></p>
+
+      </div>
+    </article>
+  </div>
+</main>
+<footer>
+  <div class="container">
+    <div>© 2026 Waruna</div>
+    <div><a href="/">← Back to home</a></div>
+  </div>
+</footer>
+<script>(function(){var btn=document.getElementById('themeToggle');if(!btn)return;function sync(){var d=document.documentElement.getAttribute('data-theme')==='dark';btn.setAttribute('aria-label',d?'Switch to light mode':'Switch to dark mode');btn.setAttribute('aria-pressed',d?'true':'false');}sync();btn.addEventListener('click',function(){var d=document.documentElement.getAttribute('data-theme')==='dark';if(d){document.documentElement.removeAttribute('data-theme');try{localStorage.setItem('theme-dejan','light');}catch(e){}}else{document.documentElement.setAttribute('data-theme','dark');try{localStorage.setItem('theme-dejan','dark');}catch(e){}}sync();});})();</script>
+</body>
+</html>
