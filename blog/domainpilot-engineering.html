@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Building DomainPilot - Engineering a Multi-Region Uptime Monitoring SaaS — Waruna</title>
+<meta name="description" content="An architecture story about distributed systems, anti-spam alerting, and the tradeoffs of building a real product end-to-end.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Newsreader:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+<script>(function(){try{if(localStorage.getItem('theme-dejan')==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+<link rel="stylesheet" href="/blog/blog.css">
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo"><img src="/images/avatar_small.jpg" alt="Waruna" class="logo-avatar">Waruna</a>
+    <nav class="nav-links">
+      <a href="/#projects">Projects</a>
+      <a href="/#experience">Experience</a>
+      <a href="/blog/" class="active">Blog</a>
+      <a href="/#contact">Contact</a>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
+        <svg class="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        <svg class="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="container">
+    <article>
+      <a href="/blog/" class="post-back">Back to blog</a>
+      <h1>Building DomainPilot - Engineering a Multi-Region Uptime Monitoring SaaS</h1>
+      <p class="post-subtitle">An architecture story about distributed systems, anti-spam alerting, and the tradeoffs of building a real product end-to-end.</p>
+      <div class="post-meta-row">
+        <span class="post-date">March 10, 2026</span>
+        <div class="post-tags post-tags-article"><span class="post-tag">SAAS</span><span class="post-tag">software architecture</span><span class="post-tag">domain management</span><span class="post-tag">uptime monitoring</span></div>
+      </div>
+      <div class="post-body">
+<h2>Why This Article Exists</h2>
+<p>Most architecture articles either show off vanity diagrams or hide the interesting decisions behind marketing language. This is an attempt at neither. <a href="https://domainpilot.io">DomainPilot</a> is a multi-region uptime and SSL monitoring SaaS I designed and built with a co-founder over the past year. I own all engineering and design; product direction is co-owned. Everything in this article is real and currently running in production.</p>
+<p>The most useful engineering writing is the kind that explains <em>why</em> a system is shaped the way it is, not just what&#39;s in it. Architecture diagrams are easy. Architecture <em>decisions</em> are harder, and they&#39;re what other engineers actually want to read about.</p>
+<p>What follows is a tour through the parts of DomainPilot&#39;s architecture that taught me the most, with an emphasis on the tradeoffs we faced and the patterns that ended up mattering.</p>
+<hr>
+<h2>The System at a Glance</h2>
+<p>DomainPilot monitors websites and SSL certificates from multiple geographic regions, alerts users when something breaks, and provides analytics on uptime and certificate health over time. Users register domains through a web dashboard, the system probes them on a regular schedule, and any failures are evaluated, deduplicated, and turned into alerts delivered through email, Slack, push notifications, and webhooks.</p>
+<p>At the highest level, the system has three main components:</p>
+<ul>
+<li>A <strong>Next.js frontend</strong> running on Vercel, providing the dashboard and real-time UI</li>
+<li>A <strong>Rails backend</strong> running on Fly.io, handling the API, business logic, billing, and orchestration</li>
+<li>A <strong>Go uptime service</strong> running across multiple Fly.io regions worldwide, performing the actual probes</li>
+</ul>
+<p>These talk through a combination of REST APIs, Redis Pub/Sub, and a PostgreSQL database that serves as the system of record. Time-series data lives in a separate TimescaleDB instance optimized for high-volume writes and aggregation queries.</p>
+<p>The architecture went through one significant evolution that&#39;s worth describing in detail, because the decision-making behind it is more interesting than the result.</p>
+<hr>
+<h2>The Database Polling Problem</h2>
+<p>In the original architecture, each Go probe instance periodically queried the Rails database to figure out which domains it was responsible for monitoring. This is the obvious approach and it works fine when you have one or two regions. It stops being fine when you have many.</p>
+<p>The math is unforgiving. With each region polling every few seconds across a domain population that grows linearly, the database query load grows multiplicatively with regions. The database started spending more time answering &quot;which domains do I check?&quot; than answering anything else. Most of those queries returned nearly identical results.</p>
+<p>There were three obvious responses to this:</p>
+<ol>
+<li><strong>Add caching at the Rails layer.</strong> Reduces query load but doesn&#39;t solve the fundamental coupling between probe regions and the central database.</li>
+<li><strong>Cache configurations locally in each Go instance with a TTL.</strong> Reduces query frequency but introduces staleness. When a user adds or removes a domain, they want it monitored or unmonitored <em>now</em>, not in 30 seconds.</li>
+<li><strong>Push configurations to probes instead of having them pull.</strong> Inverts the relationship. The database stops being a hot path for probe scheduling.</li>
+</ol>
+<p>The third option is structurally cleaner. The first two patch the symptom; the third addresses the cause. So that&#39;s what we built.</p>
+<hr>
+<h2>Push, Don&#39;t Pull: The Redis Config Broadcast</h2>
+<p>The current architecture treats Rails as the single source of truth for domain configurations and uses Redis as the broadcast channel. The pattern works like this:</p>
+<p>When a domain is created, updated, or deleted in Rails, an <code>after_save</code> (or <code>after_destroy</code>) callback writes the configuration to a Redis hash and publishes a notification on a Pub/Sub channel. Each Go probe subscribes to that channel and maintains an in-memory map of the domains it&#39;s responsible for. On startup, a probe loads the entire domain set with a single Redis call. From then on, it only reads from Redis when it receives a Pub/Sub notification telling it something changed.</p>
+<p>The result: zero database queries from probes during normal operation. All probe scheduling happens against in-memory data, with config updates propagating from Rails to every region within milliseconds.</p>
+<p>This pattern has some properties worth naming explicitly:</p>
+<p><strong>Rails remains the source of truth.</strong> Redis is a cache and a transport mechanism. If Redis loses data, the system can rebuild from Rails. We don&#39;t have to reason about distributed consistency between databases because there&#39;s only one database that matters.</p>
+<p><strong>Probes are stateless from the perspective of configuration.</strong> They can be restarted, redeployed, or scaled at any time. On startup they load everything they need from Redis in one operation.</p>
+<p><strong>Updates propagate at Redis Pub/Sub latency.</strong> In practice, this is fast enough that domain changes are reflected globally before a user can refresh their dashboard.</p>
+<p><strong>The pattern degrades gracefully.</strong> If Pub/Sub temporarily drops a notification, the next probe restart will catch up. If Redis is unavailable, probes continue running on cached configs while Rails queues updates.</p>
+<p>The interesting tradeoff here is that we deliberately chose Redis Pub/Sub over a more robust message queue like Kafka or RabbitMQ. The reasoning: domain configuration updates are infrequent compared to probe traffic, occasional missed notifications are recoverable on restart, and adding Kafka would mean operating Kafka. For our scale, Pub/Sub&#39;s &quot;at-most-once&quot; delivery is acceptable. For an enterprise-grade system serving thousands of customers with strict SLAs, the calculus would change. We&#39;ll know we&#39;ve outgrown this when the operational simplicity stops outweighing the durability gap.</p>
+<hr>
+<h2>The Alerting Problem Nobody Talks About</h2>
+<p>The hardest problem in uptime monitoring isn&#39;t detecting that a site is down. That&#39;s a 200ms HTTP request away.</p>
+<p>The hardest problem is <em>not telling users about failures that don&#39;t matter</em>.</p>
+<p>If you&#39;ve ever used an uptime monitoring service, you&#39;ve probably been woken up by a 3 AM SMS for a 30-second blip caused by a transient DNS hiccup or a momentary network issue between a single probe region and your origin. You acknowledged the alert, went back to sleep, and when you checked in the morning, everything was fine. The service worked exactly as designed and you hated it.</p>
+<p>This pattern --- call it alert fatigue --- is why most uptime monitoring tools eventually get muted, ignored, or replaced. It&#39;s also why we spent a disproportionate amount of architectural effort on the layer between &quot;detection&quot; and &quot;notification.&quot;</p>
+<p>DomainPilot&#39;s anti-spam pipeline has two layers, applied in sequence to every potential alert.</p>
+<h3>Layer One: Multi-Region Consensus</h3>
+<p>Before any alert fires, multiple geographically distinct regions must independently observe the failure within a short time window. A single region reporting a failure is treated as a <em>signal</em>, not as ground truth. The system stores per-region failure observations, ages them out after the consensus window, and only escalates to &quot;domain is down&quot; when enough regions agree.</p>
+<p>The reasoning is simple: a real outage looks different from a transient network issue. A real outage is observable from multiple vantage points within seconds. A transient issue between one probe and the target site is observable from one vantage point and disappears before another can confirm it. By requiring multi-region agreement, we filter out a huge class of false positives without affecting alert latency for real outages.</p>
+<p>There&#39;s a special case for domains that only have one region configured (a feature we offer for cost reasons). For these, the consensus threshold automatically adjusts to one --- better to occasionally over-alert than to never alert.</p>
+<h3>Layer Two: Flap Detection</h3>
+<p>Some sites enter pathological states where they oscillate between up and down repeatedly --- usually due to overloaded backends, failing health checks, or DNS issues during deployments. From a probe&#39;s perspective, every state transition is a real event. From a user&#39;s perspective, ten state-change emails in an hour is a denial-of-service attack.</p>
+<p>The flap detector watches for domains that transition states above a threshold within a rolling window. Once a domain enters flap mode, individual alerts are suppressed and replaced with an hourly digest summarizing what happened. The user gets one informative email instead of ten panic-inducing ones.</p>
+<p>Together, these two layers turn a noisy detection system into a usable alerting system. They&#39;re also the kind of feature that&#39;s difficult to retrofit --- they have to be designed into the alert pipeline from the beginning, because they fundamentally change what &quot;an alert&quot; means.</p>
+<hr>
+<h2>The Time-Series Story</h2>
+<p>Every probe generates data. Multiply that by hundreds of domains and many regions, and you produce a lot of rows per minute. PostgreSQL can handle this, but not cheaply, and not well at query time when you want to render a one-year uptime graph for a customer.</p>
+<p>We use TimescaleDB (Postgres-compatible, optimized for time-series workloads) for all probe data. It gives us three properties that matter:</p>
+<p><strong>Hypertables</strong> automatically partition data by time, which keeps insert performance constant as the data set grows. We don&#39;t have to think about partition management.</p>
+<p><strong>Continuous aggregates</strong> materialize hourly and daily roll-ups in the background. When a user opens a dashboard, the query hits a small pre-aggregated table, not raw probe data. Dashboards stay responsive even when the underlying data set is huge.</p>
+<p><strong>Compression and retention policies</strong> automatically compress older data and drop data past our retention window. Storage costs stay predictable as the system grows.</p>
+<p>The interesting decision here was <em>not</em> to put our transactional data (users, organizations, subscriptions, billing) in TimescaleDB. Those live in a separate PostgreSQL instance. The reasoning: time-series data and transactional data have completely different access patterns and operational profiles. Mixing them creates a database that&#39;s bad at both.</p>
+<p>This is one of those architectural decisions that sounds obvious in hindsight but requires discipline to maintain. There&#39;s always a temptation to keep &quot;just one table&quot; of operational data near the probe data because it&#39;s convenient. We&#39;ve held the line on the separation, and it&#39;s paid off in operational simplicity.</p>
+<hr>
+<h2>Probe Scheduling Without a Coordinator</h2>
+<p>A multi-region probe fleet has a coordination problem. If two regions decide to probe the same domain at the same instant, you double your traffic to that origin for no benefit. If no region decides to probe it for a long stretch, you miss outages.</p>
+<p>The naive solution is a central scheduler that hands out probe assignments. We considered this and rejected it. A central scheduler is a single point of failure, an extra service to operate, and an additional network hop in a hot path.</p>
+<p>Instead, each region runs its own scheduler against its in-memory copy of the domain configuration. Probes are scheduled based on a tier system --- different domains have different probe frequencies based on subscription level --- and a worker pool of bounded concurrency executes them.</p>
+<p>This works because the probes don&#39;t need to coordinate with each other for correctness. We <em>want</em> multiple regions probing the same domain. The multi-region consensus layer described earlier depends on it. Independent regional scheduling is the right model for this workload.</p>
+<p>Where regions <em>do</em> need to communicate is in escalating their observations to the central system, which happens through a batched write pipeline that aggregates probe results in Redis before flushing them to TimescaleDB. This gives us back the throughput we&#39;d lose to per-probe writes without losing the multi-region independence.</p>
+<hr>
+<h2>What I Learned</h2>
+<p>A few patterns generalized beyond this specific system:</p>
+<p><strong>Pull is easier to reason about; push scales better.</strong> The polling-to-broadcast migration was the single biggest architectural improvement in the system&#39;s life. Inverting &quot;who initiates the request&quot; turned out to be more important than any individual optimization.</p>
+<p><strong>Anti-spam is alert architecture, not alert formatting.</strong> You can&#39;t bolt good alerting onto a system that wasn&#39;t designed for it. The consensus and flap detection layers had to be designed into the data model, the alert pipeline, and the user experience together.</p>
+<p><strong>Operational simplicity is a feature.</strong> Choosing Redis Pub/Sub over Kafka, choosing in-memory regional schedulers over a central coordinator, choosing TimescaleDB instead of building our own roll-ups --- every one of these decisions trades theoretical robustness for fewer things to operate. For a small team, that tradeoff is almost always worth it. We can revisit when the scale justifies the complexity.</p>
+<p><strong>Separating transactional data from time-series data is non-negotiable.</strong> They have different access patterns, different durability requirements, and different scaling profiles. Trying to make one database good at both is how systems become unmaintainable.</p>
+<p><strong>Real-world systems leak through their architecture.</strong> The consensus window, the flap detection threshold, the probe tier intervals --- these are products of empirical tuning, not first-principles design. Our most important tuning happens after deployment, not before.</p>
+<hr>
+<h2>What&#39;s Next</h2>
+<p>The current architecture handles our load comfortably and scales for our roadmap, but there are obvious next steps:</p>
+<p>A formal incident state machine to replace the current ad-hoc state tracking. A migration from Pub/Sub to a more durable transport when our customer base demands stronger SLA guarantees. Dedicated alerting engine separation. Eventually, an external probe network for catching network-path issues that our current regions can&#39;t see.</p>
+<p>We&#39;ll do those when they earn their place --- when the operational pain of <em>not</em> having them exceeds the cost of operating them. That&#39;s the only honest principle for architectural evolution.</p>
+<hr>
+<p>If you want to see the product these decisions ended up shaping, you can find it at <a href="https://domainpilot.io">domainpilot.io</a>.</p>
+<hr>
+<p><em>Waruna de Silva is a product engineer with 12+ years shipping software end-to-end. He&#39;s currently Lead Application Engineer at Paro AI and builds <a href="https://domainpilot.io">DomainPilot</a> with a co-founder under Frontcube LLC. He also maintains <a href="https://github.com/warunacds">Agent Desk</a>, <a href="https://github.com/warunacds/whygit">whygit</a>, and writes about engineering process and AI-assisted development. More at <a href="https://waruna.dev">waruna.dev</a>.</em></p>
+
+      </div>
+    </article>
+  </div>
+</main>
+<footer>
+  <div class="container">
+    <div>© 2026 Waruna</div>
+    <div><a href="/">← Back to home</a></div>
+  </div>
+</footer>
+<script>(function(){var btn=document.getElementById('themeToggle');if(!btn)return;function sync(){var d=document.documentElement.getAttribute('data-theme')==='dark';btn.setAttribute('aria-label',d?'Switch to light mode':'Switch to dark mode');btn.setAttribute('aria-pressed',d?'true':'false');}sync();btn.addEventListener('click',function(){var d=document.documentElement.getAttribute('data-theme')==='dark';if(d){document.documentElement.removeAttribute('data-theme');try{localStorage.setItem('theme-dejan','light');}catch(e){}}else{document.documentElement.setAttribute('data-theme','dark');try{localStorage.setItem('theme-dejan','dark');}catch(e){}}sync();});})();</script>
+</body>
+</html>
