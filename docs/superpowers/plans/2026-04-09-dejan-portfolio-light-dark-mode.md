@@ -387,9 +387,9 @@ Replace with:
 .theme-toggle:hover{color:var(--text);background:rgba(0,0,0,.05)}
 :root[data-theme="dark"] .theme-toggle:hover{background:rgba(255,255,255,.05)}
 .theme-toggle svg{display:block}
-.theme-icon-moon{display:none}
-:root[data-theme="dark"] .theme-icon-sun{display:none}
-:root[data-theme="dark"] .theme-icon-moon{display:block}
+.theme-toggle .theme-icon-moon{display:none}
+:root[data-theme="dark"] .theme-toggle .theme-icon-sun{display:none}
+:root[data-theme="dark"] .theme-toggle .theme-icon-moon{display:block}
 ```
 
 - [ ] **Step 3: Validate the button is visible and icons swap correctly (visual only — no click handler yet)**
