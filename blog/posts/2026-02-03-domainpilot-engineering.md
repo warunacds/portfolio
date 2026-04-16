@@ -1,7 +1,7 @@
 ---
 title: Building DomainPilot - Engineering a Multi-Region Uptime Monitoring SaaS
 subtitle: An architecture story about distributed systems, anti-spam alerting, and the tradeoffs of building a real product end-to-end.
-date: 2026-03-10
+date: 2026-02-04
 tags: [SAAS, software architecture, domain management, uptime monitoring]
 ---
 
